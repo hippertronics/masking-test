@@ -1,27 +1,28 @@
 {
   "researcher": {
-    "emailjs_key":      "q09MQC52wxmsIT2tu",
-    "emailjs_service":  "service_0kc904b",
-    "emailjs_template": "template_8ouhc8l",
-    "researcher_email": "p.d.morgan@edu.salford.ac.uk"
+    "emailjs_key":      "YOUR_EMAILJS_PUBLIC_KEY",
+    "emailjs_service":  "YOUR_SERVICE_ID",
+    "emailjs_template": "YOUR_TEMPLATE_ID",
+    "researcher_email": "you@university.ac.uk"
   },
 
   "staircase": {
     "rule":                    "2down1up",
-    "start_level":             60,
+    "start_level":             70,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         8,
     "reversals_for_threshold": 6,
     "min_level":               20,
-    "max_level":               60
+    "max_level":               80
   },
 
   "stimuli": {
     "path":              "stimuli/",
-    "frequencies":       ["1kHz","2kHz"],
+    "frequencies":       ["1kHz", "2kHz"],
+    "delays_ms":         [10, 20, 50, 100],
     "level_step":        5,
-    "masker_level":      70,
+    "masker_level":      80,
     "calibration_tag":   "simultaneous",
     "stage2_window":     10,
     "filename_pattern":  "{condition}_{delay}_{frequency}_{level}dB.wav"

@@ -927,37 +927,29 @@ function renderFileList(unparsed) {
 
 function generateUrlList() {
   if (!CFG) { showErr('setupErr','config.json not loaded yet.'); return; }
-  const s    = CFG.stimuli;
-  const path = s.path || 'stimuli/';
-  const freqs = s.frequencies || ['1kHz','2kHz'];
-  const minL  = CFG.staircase.min_level;
-  const maxL  = CFG.staircase.max_level;
-  const step  = s.level_step || 5;
+  const s      = CFG.stimuli;
+  const path   = s.path || 'stimuli/';
+  const freqs  = s.frequencies  || ['1kHz','2kHz'];
+  const delays = s.delays_ms    || [10, 20, 50, 100];
+  const minL   = CFG.staircase.min_level;
+  const maxL   = CFG.staircase.max_level;
+  const step   = s.level_step   || 5;
   const calTag = s.calibration_tag || 'simultaneous';
 
-  // Build all levels array
   const levels = [];
   for (let l = minL; l <= maxL; l += step) levels.push(l);
-
-  // Collect all delays from Stage 2 — we need to know what delays exist.
-  // Since we don't know delays ahead of time, use a sensible default set
-  // which the user can edit in the textarea afterwards.
-  // We read delays from any existing parsed files, or fall back to defaults.
-  const knownDelays = allFiles.length
-    ? [...new Set(allFiles.filter(f=>f.parsed.condition!==calTag).map(f=>f.parsed.delay))].sort((a,b)=>a-b)
-    : [10, 20, 50, 100]; // fallback defaults — user can edit
 
   const lines = [];
 
   freqs.forEach(freq => {
-    // Stage 1 — calibration (simultaneous, 0ms delay)
+    // Stage 1 — calibration (simultaneous, 0ms)
     levels.forEach(lvl => {
       lines.push(`${path}${calTag}_0ms_${freq}_${lvl}dB.wav`);
     });
 
     // Stage 2 — forward & backward at each delay & level
     ['forward','backward'].forEach(cond => {
-      knownDelays.forEach(delay => {
+      delays.forEach(delay => {
         levels.forEach(lvl => {
           lines.push(`${path}${cond}_${delay}ms_${freq}_${lvl}dB.wav`);
         });
