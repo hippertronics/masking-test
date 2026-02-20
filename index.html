@@ -412,6 +412,7 @@ kbd{
     <div class="lab">Psychoacoustics Laboratory</div>
     <h1>Temporal <em>Masking</em> Test</h1>
     <div class="sub">Adaptive threshold · Forward &amp; backward masking</div>
+    <div style="font-size:.55rem;color:var(--muted);margin-top:.5rem;letter-spacing:.15em;opacity:.6">v<span id="versionDisplay">—</span></div>
   </div>
 
   <div class="card">
@@ -771,7 +772,8 @@ kbd{
 <script>
 /* ═══════════════════════════════════════════════════════════════════════
    TEMPORAL MASKING TEST — Full adaptive two-stage application
-   
+   v1.5
+
    Filename convention (set in config.json):
      {condition}_{delay}_{frequency}_{level}dB.wav
    Examples:
@@ -782,6 +784,10 @@ kbd{
    EmailJS setup: https://www.emailjs.com
      Template variables: {{to_email}} {{subject}} {{message}} {{csv_data}}
 ═══════════════════════════════════════════════════════════════════════ */
+
+// ── Version ────────────────────────────────────────────────────────
+const APP_VERSION = '1.5';
+document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Global config & state ──────────────────────────────────────────
 let CFG = null;   // loaded from config.json
@@ -1504,6 +1510,7 @@ function buildSummary() {
     .map(([f,t]) => `  ${f}: ${t} dB`).join('\n');
   return [
     `=== TEMPORAL MASKING TEST RESULTS ===`,
+    `App version:   ${APP_VERSION}`,
     `Participant:   ${participant.name}`,
     `Age:           ${participant.age}`,
     `Gender:        ${participant.gender}`,
@@ -1526,6 +1533,7 @@ function buildSummary() {
 function buildCSV() {
   const metaLines = [
     `# Temporal Masking Test — Results`,
+    `# App version: ${APP_VERSION}`,
     `# Participant: ${participant.name}`,
     `# Age: ${participant.age}`,
     `# Gender: ${participant.gender}`,
