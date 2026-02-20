@@ -20,7 +20,7 @@
   "stimuli": {
     "path":              "stimuli/",
     "frequencies":       ["1kHz", "2kHz"],
-    "delays_ms":         [10, 20, 50, 100],
+    "delays_ms":         [10, 20, 30, 40, 50],
     "level_step":        5,
     "masker_level":      80,
     "calibration_tag":   "simultaneous",
