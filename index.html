@@ -474,11 +474,15 @@ kbd{
 
       <div class="tab-panel" id="panel-url">
         <div class="note" style="margin-bottom:.85rem">
-          When hosted on GitHub Pages, files in your <code>stimuli/</code> folder are
-          referenced automatically using the path in <code>config.json</code>.
-          Enter any overrides below (one per line), or leave blank to use config path.
+          Generates the full file list automatically from <code>config.json</code> parameters
+          (path, frequencies, levels, delays, conditions). Click <strong>Generate file list</strong>
+          to preview, then edit if needed. Files are fetched from your hosted <code>stimuli/</code> folder.
         </div>
-        <textarea id="urlList" placeholder="stimuli/simultaneous_0ms_1kHz_60dB.wav&#10;stimuli/forward_10ms_1kHz_60dB.wav&#10;…"></textarea>
+        <button class="btn btn-ghost" onclick="generateUrlList()" style="margin-bottom:.75rem;width:100%">
+          ⟳ Generate file list from config
+        </button>
+        <textarea id="urlList" placeholder="Click Generate above, or paste paths manually — one per line…" style="min-height:140px;font-size:.65rem"></textarea>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:.4rem" id="urlCount"></div>
       </div>
 
       <div class="err-msg" id="setupErr"></div>
@@ -921,6 +925,52 @@ function renderFileList(unparsed) {
   }
 }
 
+function generateUrlList() {
+  if (!CFG) { showErr('setupErr','config.json not loaded yet.'); return; }
+  const s    = CFG.stimuli;
+  const path = s.path || 'stimuli/';
+  const freqs = s.frequencies || ['1kHz','2kHz'];
+  const minL  = CFG.staircase.min_level;
+  const maxL  = CFG.staircase.max_level;
+  const step  = s.level_step || 5;
+  const calTag = s.calibration_tag || 'simultaneous';
+
+  // Build all levels array
+  const levels = [];
+  for (let l = minL; l <= maxL; l += step) levels.push(l);
+
+  // Collect all delays from Stage 2 — we need to know what delays exist.
+  // Since we don't know delays ahead of time, use a sensible default set
+  // which the user can edit in the textarea afterwards.
+  // We read delays from any existing parsed files, or fall back to defaults.
+  const knownDelays = allFiles.length
+    ? [...new Set(allFiles.filter(f=>f.parsed.condition!==calTag).map(f=>f.parsed.delay))].sort((a,b)=>a-b)
+    : [10, 20, 50, 100]; // fallback defaults — user can edit
+
+  const lines = [];
+
+  freqs.forEach(freq => {
+    // Stage 1 — calibration (simultaneous, 0ms delay)
+    levels.forEach(lvl => {
+      lines.push(`${path}${calTag}_0ms_${freq}_${lvl}dB.wav`);
+    });
+
+    // Stage 2 — forward & backward at each delay & level
+    ['forward','backward'].forEach(cond => {
+      knownDelays.forEach(delay => {
+        levels.forEach(lvl => {
+          lines.push(`${path}${cond}_${delay}ms_${freq}_${lvl}dB.wav`);
+        });
+      });
+    });
+  });
+
+  document.getElementById('urlList').value = lines.join('\n');
+  document.getElementById('urlCount').textContent =
+    `${lines.length} files listed — edit to remove any that don't exist in your stimuli folder`;
+  clearErr('setupErr');
+}
+
 function parseUrls() {
   return (document.getElementById('urlList').value.trim()
     .split('\n').map(l=>l.trim()).filter(Boolean))
@@ -980,7 +1030,20 @@ function setupNext() {
     if (!allFiles.length) { showErr('setupErr','Please add at least one audio file.'); return; }
   } else {
     allFiles = parseUrls();
-    if (!allFiles.length) { showErr('setupErr','Please enter at least one valid audio URL.'); return; }
+    if (!allFiles.length) {
+      showErr('setupErr','No valid file paths found. Click "Generate file list from config" or enter paths manually.'); return;
+    }
+    // Quick probe — fetch HEAD on first file to catch path errors early
+    const testUrl = allFiles[0].url;
+    fetch(testUrl, {method:'HEAD'}).then(r => {
+      if (!r.ok) {
+        showErr('setupErr',
+          `⚠ First file returned HTTP ${r.status}: ${testUrl} — check your stimuli/ folder path and filenames.`);
+      }
+    }).catch(() => {
+      showErr('setupErr',
+        `⚠ Could not reach: ${testUrl} — are you running from GitHub Pages or a local server?`);
+    });
   }
 
   // Validate we have calibration files
