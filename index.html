@@ -710,6 +710,7 @@ kbd{
         <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialFreqTag">—</span>
         <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialCondTag">—</span>
         <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialDelayTag">—</span>
+        <span style="font-size:.62rem;color:var(--accent);background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:4px;padding:.25rem .65rem" id="trialLevelTag">—</span>
       </div>
 
       <div class="player">
@@ -1334,9 +1335,10 @@ function loadTrial() {
   document.getElementById('progPct').textContent    = pct + '%';
 
   // Update info tags
-  document.getElementById('trialFreqTag').textContent  = f.parsed.frequency;
-  document.getElementById('trialCondTag').textContent  = f.parsed.condition;
-  document.getElementById('trialDelayTag').textContent = f.parsed.delay + ' ms';
+  document.getElementById('trialFreqTag').textContent   = f.parsed.frequency;
+  document.getElementById('trialCondTag').textContent   = f.parsed.condition;
+  document.getElementById('trialDelayTag').textContent  = f.parsed.delay + ' ms';
+  document.getElementById('trialLevelTag').textContent  = f.parsed.level + ' dB';
 
   setTrialEnabled(false);
   setTrialStatus('Press play to listen');
