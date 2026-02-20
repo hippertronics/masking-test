@@ -811,6 +811,7 @@ let lastDirection  = null;   // 'up'|'down'
 let usingLargeStep = true;
 let reversalLevels = [];     // levels at each reversal
 let calHasPlayed   = false;
+let calTrialCount  = 0;      // total trials this block (for max_trials escape)
 
 // Stage 2
 let stage2Files  = [];
@@ -1093,6 +1094,7 @@ function startFreqBlock() {
   reversalLevels = [];
   calHistory     = [];
   calHasPlayed   = false;
+  calTrialCount  = 0;
 
   document.getElementById('cal-freq-tag').textContent  = freq;
   document.getElementById('cal-badge-text').textContent = `Stage 1 · Calibration · ${freq}`;
@@ -1146,9 +1148,11 @@ async function playCalStimulus() {
 function calResponse(heard) {
   if (!calHasPlayed) return;
 
-  const sc = CFG.staircase;
-  const step = usingLargeStep ? sc.step_large : sc.step_small;
+  const sc    = CFG.staircase;
+  const step  = usingLargeStep ? sc.step_large : sc.step_small;
+  const maxT  = sc.max_trials || 60;
 
+  calTrialCount++;
   calHistory.push({ level: calLevel, response: heard });
   staircaseLog.push({
     freq: freqOrder[freqIndex], trial: calHistory.length,
@@ -1157,6 +1161,16 @@ function calResponse(heard) {
 
   // Update dots visualisation
   addStaircaseDot(heard);
+
+  // ── Max trials escape ──────────────────────────────────────────
+  // Check before staircase logic so we don't take another step first
+  if (calTrialCount >= maxT) {
+    const thresh = computeThresholdFromReversals();
+    thresholds[freqOrder[freqIndex]] = thresh;
+    staircaseLog[staircaseLog.length-1].note = 'max_trials_reached';
+    finishFreqBlock(thresh);
+    return;
+  }
 
   let direction;
   if (heard) {
@@ -1167,7 +1181,7 @@ function calResponse(heard) {
       calLevel  = Math.max(sc.min_level, calLevel - step);
       consecutiveYes = 0;
     } else {
-      // 1 yes, waiting for 2nd
+      // 1 yes, waiting for 2nd — reset UI for next play
       setCalEnabled(false);
       setCalStatus('Press play to listen');
       setCalPlaying(false);
@@ -1186,17 +1200,16 @@ function calResponse(heard) {
   // Check for reversal
   if (lastDirection && direction !== lastDirection) {
     reversals++;
-    reversalLevels.push(heard ? calLevel + step : calLevel - step); // level at reversal point
-    usingLargeStep = false; // switch to small step after first reversal
+    reversalLevels.push(heard ? calLevel + step : calLevel - step);
+    usingLargeStep = false;
     staircaseLog[staircaseLog.length-1].reversal = true;
 
     document.getElementById('reversalCount').innerHTML =
       `Reversals: ${reversals} / <span id="revTarget">${sc.reversals_total}</span>`;
 
     if (reversals >= sc.reversals_total) {
-      // Staircase complete — compute threshold
-      const useLast = reversalLevels.slice(-sc.reversals_for_threshold);
-      const thresh  = Math.round(useLast.reduce((a,b)=>a+b,0) / useLast.length);
+      // Normal completion — enough reversals accumulated
+      const thresh = computeThresholdFromReversals();
       thresholds[freqOrder[freqIndex]] = thresh;
       finishFreqBlock(thresh);
       return;
@@ -1211,6 +1224,16 @@ function calResponse(heard) {
   setCalPlaying(false);
   calHasPlayed = false;
   document.getElementById('calReplayHint').style.visibility = 'hidden';
+}
+
+// Compute threshold from however many reversals we have.
+// If fewer than reversals_for_threshold have accumulated, use all of them.
+// If none at all, fall back to the current level as best estimate.
+function computeThresholdFromReversals() {
+  const sc = CFG.staircase;
+  if (reversalLevels.length === 0) return calLevel;
+  const useLast = reversalLevels.slice(-sc.reversals_for_threshold);
+  return Math.round(useLast.reduce((a,b) => a+b, 0) / useLast.length);
 }
 
 function addStaircaseDot(heard) {

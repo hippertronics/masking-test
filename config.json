@@ -8,19 +8,20 @@
 
   "staircase": {
     "rule":                    "2down1up",
-    "start_level":             70,
+    "start_level":             50,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         8,
     "reversals_for_threshold": 6,
     "min_level":               20,
-    "max_level":               80
+    "max_level":               80,
+    "max_trials":              60
   },
 
   "stimuli": {
     "path":              "stimuli/",
     "frequencies":       ["1kHz", "2kHz"],
-    "delays_ms":         [10, 20, 30, 40, 50],
+    "delays_ms":         [10, 20, 50, 100],
     "level_step":        5,
     "masker_level":      80,
     "calibration_tag":   "simultaneous",
