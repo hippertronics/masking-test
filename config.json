@@ -19,7 +19,7 @@
 
   "stimuli": {
     "path":              "stimuli/",
-    "frequencies":       ["1kHz"],
+    "frequencies":       ["1kHz","2kHz"],
     "level_step":        5,
     "masker_level":      70,
     "calibration_tag":   "simultaneous",
