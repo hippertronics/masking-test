@@ -6,7 +6,8 @@
     "researcher_email": "you@university.ac.uk"
   },
 
-  "staircase": {
+  "staircase_s1": {
+    "comment":                 "Stage 1 — initial threshold finding per frequency",
     "rule":                    "2down1up",
     "start_level":             50,
     "step_large":              10,
@@ -14,18 +15,31 @@
     "reversals_total":         8,
     "reversals_for_threshold": 6,
     "min_level":               0,
-    "max_level":               70,
+    "max_level":               50,
     "max_trials":              60
   },
 
+  "staircase_s2": {
+    "comment":                 "Stage 2 — mini-staircase per delay/condition/frequency block",
+    "rule":                    "1up1down",
+    "start_level_offset":      10,
+    "step_large":              10,
+    "step_small":              5,
+    "reversals_total":         6,
+    "reversals_for_threshold": 4,
+    "max_trials":              30
+  },
+
   "stimuli": {
-    "path":              "stimuli/",
-    "frequencies":       ["1kHz", "2kHz"],
-    "delays_ms":         [10, 15, 20, 25, 30, 35, 40, 45, 50],
-    "level_step":        5,
-    "masker_level":      80,
-    "calibration_tag":   "simultaneous",
-    "stage2_window":     10,
-    "filename_pattern":  "{condition}_{delay}_{frequency}_{level}dB.wav"
+    "path":             "stimuli/",
+    "frequencies":      ["1kHz", "2kHz"],
+    "delays_ms":        [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "conditions":       ["forward", "backward"],
+    "level_step":       5,
+    "min_level":        0,
+    "max_level":        50,
+    "masker_level":     80,
+    "calibration_tag":  "simultaneous",
+    "filename_pattern": "{condition}_{delay}_{frequency}_{level}dB.wav"
   }
 }
