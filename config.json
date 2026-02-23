@@ -22,7 +22,7 @@
   "staircase_s2": {
     "comment":                 "Stage 2 — mini-staircase per delay/condition/frequency block",
     "rule":                    "1up1down",
-    "start_level_offset":      10,
+    "start_level_offset":      20,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         6,
