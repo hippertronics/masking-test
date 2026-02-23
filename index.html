@@ -7,1456 +7,1311 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
-/* ── Tokens ─────────────────────────────────────────────────────── */
 :root {
-  --bg:        #08090d;
-  --surf:      #0f1118;
-  --surf2:     #161921;
-  --surf3:     #1c1f2a;
-  --border:    #252836;
-  --border2:   #2f3344;
-  --accent:    #c8a96e;
-  --accent2:   #7eb8f7;
-  --yes:       #5ecf8a;
-  --no:        #e0605f;
-  --text:      #cdd1e0;
-  --muted:     #565c72;
-  --fm:        'DM Mono', monospace;
-  --fd:        'Cormorant Garamond', serif;
+  --bg:      #08090d;
+  --surf:    #0f1118;
+  --surf2:   #161921;
+  --surf3:   #1c1f2a;
+  --border:  #252836;
+  --border2: #2f3344;
+  --accent:  #c8a96e;
+  --accent2: #7eb8f7;
+  --yes:     #5ecf8a;
+  --no:      #e0605f;
+  --text:    #cdd1e0;
+  --muted:   #565c72;
+  --fm:      'DM Mono', monospace;
+  --fd:      'Cormorant Garamond', serif;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-
-body {
-  background:var(--bg); color:var(--text); font-family:var(--fm);
-  min-height:100vh; display:flex; flex-direction:column;
-  align-items:center; justify-content:flex-start;
+body{
+  background:var(--bg);color:var(--text);font-family:var(--fm);
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;
   padding:3rem 1.5rem 5rem;
 }
-
-/* Grain texture overlay */
-body::before {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
   opacity:.4;
 }
-
-/* Fine grid */
-body::after {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(200,169,110,.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200,169,110,.018) 1px, transparent 1px);
+    linear-gradient(rgba(200,169,110,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(200,169,110,.018) 1px,transparent 1px);
   background-size:48px 48px;
 }
-
-/* ── Layout ─────────────────────────────────────────────────────── */
-.wrap {
-  position:relative; z-index:1;
-  width:100%; max-width:680px;
-}
-
-/* Top wordmark */
-.wordmark {
-  text-align:center; margin-bottom:2.25rem;
-}
-.wordmark .lab {
-  font-size:.6rem; letter-spacing:.35em; color:var(--muted);
-  text-transform:uppercase; margin-bottom:.35rem;
-}
-.wordmark h1 {
-  font-family:var(--fd); font-size:2.1rem; font-weight:300;
-  color:#fff; letter-spacing:.02em; line-height:1.1;
-}
-.wordmark h1 em { font-style:italic; color:var(--accent); }
-.wordmark .sub {
-  font-size:.65rem; color:var(--muted); margin-top:.4rem; letter-spacing:.1em;
-  text-transform:uppercase;
-}
-
-.card {
-  background:var(--surf);
-  border:1px solid var(--border);
-  border-radius:12px;
+.wrap{position:relative;z-index:1;width:100%;max-width:680px;margin-top:2rem}
+.card{
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
   padding:2.25rem 2.5rem 2.5rem;
-  box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03);
+  box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03);
 }
+.wordmark{text-align:center;margin-bottom:2.25rem}
+.wordmark .lab{font-size:.6rem;letter-spacing:.35em;color:var(--muted);text-transform:uppercase;margin-bottom:.35rem}
+.wordmark h1{font-family:var(--fd);font-size:2.1rem;font-weight:300;color:#fff;letter-spacing:.02em;line-height:1.1}
+.wordmark h1 em{font-style:italic;color:var(--accent)}
+.wordmark .sub{font-size:.65rem;color:var(--muted);margin-top:.4rem;letter-spacing:.1em;text-transform:uppercase}
+.wordmark .ver{font-size:.55rem;color:var(--muted);margin-top:.5rem;letter-spacing:.15em;opacity:.5}
 
-/* ── Screens ────────────────────────────────────────────────────── */
 .screen{display:none}
 .screen.active{display:block;animation:fadeUp .3s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* ── Section heading ────────────────────────────────────────────── */
-.sh {
-  display:flex; align-items:center; gap:.75rem;
-  margin-bottom:1.5rem;
-}
-.sh .tag {
-  font-size:.58rem; letter-spacing:.2em; color:var(--accent);
-  text-transform:uppercase; background:rgba(200,169,110,.1);
-  border:1px solid rgba(200,169,110,.2); border-radius:3px;
-  padding:.2rem .55rem; white-space:nowrap;
-}
-.sh h2 {
-  font-family:var(--fd); font-size:1.45rem; font-weight:300; color:#fff;
-}
-
+.sh{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.sh .tag{font-size:.58rem;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);border-radius:3px;padding:.2rem .55rem;white-space:nowrap}
+.sh h2{font-family:var(--fd);font-size:1.45rem;font-weight:300;color:#fff}
 .divider{height:1px;background:var(--border);margin:1.75rem 0}
 
-/* ── Form ───────────────────────────────────────────────────────── */
+/* Form */
 .field{margin-bottom:1.25rem}
-label.lbl{
-  display:block; font-size:.6rem; letter-spacing:.15em;
-  color:var(--muted); text-transform:uppercase; margin-bottom:.4rem;
-}
+label.lbl{display:block;font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem}
 label.lbl .req{color:var(--accent);margin-left:.1rem}
-
 input[type=text],input[type=email],input[type=number],select,textarea{
-  width:100%; background:var(--surf2); border:1px solid var(--border);
-  border-radius:6px; padding:.65rem .95rem; color:var(--text);
-  font-family:var(--fm); font-size:.8rem; outline:none;
-  transition:border-color .2s,box-shadow .2s; appearance:none;
+  width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:6px;
+  padding:.65rem .95rem;color:var(--text);font-family:var(--fm);font-size:.8rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;
 }
-input:focus,select:focus,textarea:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(200,169,110,.1);
-}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,169,110,.1)}
 select{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23565c72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat; background-position:right .9rem center;
-  padding-right:2.25rem; cursor:pointer;
+  background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.25rem;cursor:pointer;
 }
 textarea{resize:vertical;min-height:68px;line-height:1.65}
-
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:500px){.grid2{grid-template-columns:1fr}}
-
 .radio-group{display:flex;flex-wrap:wrap;gap:.4rem}
 .radio-group input[type=radio]{display:none}
 .radio-group label{
-  display:inline-flex; align-items:center;
-  background:var(--surf2); border:1px solid var(--border); border-radius:5px;
-  padding:.4rem .85rem; font-size:.7rem; color:var(--text);
-  cursor:pointer; transition:.15s; text-transform:none; letter-spacing:.03em;
+  display:inline-flex;align-items:center;background:var(--surf2);border:1px solid var(--border);
+  border-radius:5px;padding:.4rem .85rem;font-size:.7rem;color:var(--text);
+  cursor:pointer;transition:.15s;text-transform:none;letter-spacing:.03em;
 }
-.radio-group input[type=radio]:checked+label{
-  border-color:var(--accent); background:rgba(200,169,110,.1); color:var(--accent);
-}
+.radio-group input[type=radio]:checked+label{border-color:var(--accent);background:rgba(200,169,110,.1);color:var(--accent)}
 
-/* ── Buttons ────────────────────────────────────────────────────── */
+/* Buttons */
 .btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
-  padding:.75rem 1.5rem; border-radius:7px; border:none;
-  font-family:var(--fm); font-size:.73rem; letter-spacing:.1em;
-  text-transform:uppercase; cursor:pointer; transition:all .15s;
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.75rem 1.5rem;border-radius:7px;border:none;
+  font-family:var(--fm);font-size:.73rem;letter-spacing:.1em;
+  text-transform:uppercase;cursor:pointer;transition:all .15s;
 }
-.btn-primary{
-  background:var(--accent); color:#08090d; font-weight:500; width:100%;
-  margin-top:1.25rem;
-}
+.btn-primary{background:var(--accent);color:#08090d;font-weight:500;width:100%;margin-top:1.25rem}
 .btn-primary:hover:not(:disabled){background:#dfc088}
 .btn-primary:disabled{opacity:.3;cursor:not-allowed}
-
-.btn-yes{
-  flex:1; padding:1.15rem; font-size:.88rem; font-weight:500;
-  background:rgba(94,207,138,.1); border:1.5px solid var(--yes); color:var(--yes);
-}
-.btn-no{
-  flex:1; padding:1.15rem; font-size:.88rem; font-weight:500;
-  background:rgba(224,96,95,.1); border:1.5px solid var(--no); color:var(--no);
-}
+.btn-yes{flex:1;padding:1.15rem;font-size:.88rem;font-weight:500;background:rgba(94,207,138,.1);border:1.5px solid var(--yes);color:var(--yes)}
+.btn-no{flex:1;padding:1.15rem;font-size:.88rem;font-weight:500;background:rgba(224,96,95,.1);border:1.5px solid var(--no);color:var(--no)}
 .btn-yes:hover:not(:disabled){background:rgba(94,207,138,.22);transform:translateY(-1px)}
 .btn-no:hover:not(:disabled){background:rgba(224,96,95,.22);transform:translateY(-1px)}
 .btn-yes:disabled,.btn-no:disabled{opacity:.28;cursor:not-allowed;transform:none}
-
-.btn-ghost{
-  background:var(--surf2); border:1px solid var(--border);
-  color:var(--text); font-size:.7rem;
-}
+.btn-ghost{background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
 .btn-row{display:flex;gap:.65rem;margin-bottom:.65rem}
 
-/* ── Note box ───────────────────────────────────────────────────── */
-.note{
-  background:rgba(200,169,110,.05); border:1px solid rgba(200,169,110,.15);
-  border-radius:7px; padding:.9rem 1.1rem;
-  font-size:.69rem; color:var(--muted); line-height:1.8; letter-spacing:.03em;
-}
-.note a{color:var(--accent);text-decoration:none}
-.note a:hover{text-decoration:underline}
-.note strong{color:var(--text)}
-.note code{color:var(--accent2);font-family:var(--fm)}
-
-/* ── Progress ───────────────────────────────────────────────────── */
+/* Progress */
 .prog-wrap{margin-bottom:1.5rem}
-.prog-meta{
-  display:flex; justify-content:space-between;
-  font-size:.6rem; color:var(--muted); letter-spacing:.1em; margin-bottom:.4rem;
-}
+.prog-meta{display:flex;justify-content:space-between;font-size:.6rem;color:var(--muted);letter-spacing:.1em;margin-bottom:.4rem}
 .prog-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden}
-.prog-fill{
-  height:100%; border-radius:2px;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  transition:width .4s ease; width:0%;
-}
+.prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease;width:0%}
 
-/* ── Stage badge ────────────────────────────────────────────────── */
+/* Stage badge */
 .stage-badge{
-  display:inline-flex; align-items:center; gap:.5rem;
-  background:var(--surf2); border:1px solid var(--border2);
-  border-radius:20px; padding:.3rem .85rem;
-  font-size:.62rem; letter-spacing:.12em; color:var(--muted);
-  text-transform:uppercase; margin-bottom:1.5rem;
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--surf2);border:1px solid var(--border2);
+  border-radius:20px;padding:.3rem .85rem;
+  font-size:.62rem;letter-spacing:.12em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:1.5rem;
 }
-.stage-badge .dot{
-  width:6px; height:6px; border-radius:50%;
-  background:var(--accent); flex-shrink:0;
-  animation:blink 2s ease-in-out infinite;
-}
-.stage-badge.stage2 .dot{background:var(--accent2)}
+.stage-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:blink 2s ease-in-out infinite}
+.stage-badge.s2 .dot{background:var(--accent2)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── Player ─────────────────────────────────────────────────────── */
+/* Frequency block header */
+.freq-block-header{
+  background:rgba(126,184,247,.06);border:1px solid rgba(126,184,247,.15);
+  border-radius:8px;padding:.85rem 1.1rem;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:.85rem;
+}
+.freq-block-header .freq-pill{
+  font-family:var(--fd);font-size:1.4rem;font-weight:300;color:var(--accent2);
+  white-space:nowrap;
+}
+.freq-block-header .freq-desc{font-size:.7rem;color:var(--muted);line-height:1.6}
+
+/* Block progress overview */
+.block-overview{
+  display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;
+}
+.block-pip{
+  width:28px;height:6px;border-radius:3px;background:var(--border2);
+  transition:background .3s;
+}
+.block-pip.done{background:var(--yes)}
+.block-pip.active{background:var(--accent);animation:blink 1s ease-in-out infinite}
+
+/* Player */
 .player{
-  background:var(--surf2); border:1px solid var(--border);
-  border-radius:10px; padding:2rem 1.5rem 1.5rem;
-  text-align:center; margin-bottom:1.75rem;
+  background:var(--surf2);border:1px solid var(--border);border-radius:10px;
+  padding:2rem 1.5rem 1.5rem;text-align:center;margin-bottom:1.75rem;
 }
 .play-btn{
-  width:72px; height:72px; border-radius:50%;
-  background:var(--accent); border:none; cursor:pointer;
-  display:inline-flex; align-items:center; justify-content:center;
-  transition:all .2s; margin-bottom:.9rem;
+  width:72px;height:72px;border-radius:50%;background:var(--accent);border:none;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-bottom:.9rem;
   box-shadow:0 4px 20px rgba(200,169,110,.25);
 }
 .play-btn:hover{background:#dfc088;transform:scale(1.06)}
 .play-btn svg{width:22px;height:22px;fill:#08090d}
-.play-btn.playing{
-  background:var(--accent2);
-  box-shadow:0 4px 20px rgba(126,184,247,.3);
-  animation:pulse 1.4s ease-in-out infinite;
-}
-@keyframes pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(126,184,247,.4)}
-  50%{box-shadow:0 0 0 18px rgba(126,184,247,0)}
-}
-
-.waveform{
-  display:flex; align-items:center; justify-content:center;
-  gap:3px; height:32px; margin-bottom:.75rem;
-}
+.play-btn.playing{background:var(--accent2);box-shadow:0 4px 20px rgba(126,184,247,.3);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(126,184,247,.4)}50%{box-shadow:0 0 0 18px rgba(126,184,247,0)}}
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:32px;margin-bottom:.75rem}
 .bar{width:3px;border-radius:2px;background:var(--accent);opacity:.2}
 .waveform.active .bar{opacity:1;animation:wb .9s ease-in-out infinite alternate}
-.bar:nth-child(1){height:7px;animation-delay:0s}
-.bar:nth-child(2){height:16px;animation-delay:.08s}
-.bar:nth-child(3){height:24px;animation-delay:.17s}
-.bar:nth-child(4){height:12px;animation-delay:.04s}
-.bar:nth-child(5){height:28px;animation-delay:.13s}
-.bar:nth-child(6){height:20px;animation-delay:.22s}
-.bar:nth-child(7){height:14px;animation-delay:.06s}
-.bar:nth-child(8){height:22px;animation-delay:.16s}
-.bar:nth-child(9){height:17px;animation-delay:.1s}
-.bar:nth-child(10){height:10px;animation-delay:.2s}
-.bar:nth-child(11){height:26px;animation-delay:.03s}
-.bar:nth-child(12){height:19px;animation-delay:.15s}
+.bar:nth-child(1){height:7px;animation-delay:0s}.bar:nth-child(2){height:16px;animation-delay:.08s}
+.bar:nth-child(3){height:24px;animation-delay:.17s}.bar:nth-child(4){height:12px;animation-delay:.04s}
+.bar:nth-child(5){height:28px;animation-delay:.13s}.bar:nth-child(6){height:20px;animation-delay:.22s}
+.bar:nth-child(7){height:14px;animation-delay:.06s}.bar:nth-child(8){height:22px;animation-delay:.16s}
+.bar:nth-child(9){height:17px;animation-delay:.1s}.bar:nth-child(10){height:10px;animation-delay:.2s}
+.bar:nth-child(11){height:26px;animation-delay:.03s}.bar:nth-child(12){height:19px;animation-delay:.15s}
 @keyframes wb{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
-
 .status-txt{font-size:.67rem;color:var(--muted);letter-spacing:.1em;min-height:1.2em}
 .replay-hint{font-size:.62rem;color:var(--muted);letter-spacing:.08em;margin-bottom:.4rem;visibility:hidden}
 
-/* ── Question ───────────────────────────────────────────────────── */
+/* Question */
 .question{text-align:center;margin-bottom:1.25rem}
 .question p{font-family:var(--fd);font-size:1.15rem;font-weight:300;color:#fff}
 .question .hint{font-size:.63rem;color:var(--muted);margin-top:.3rem;letter-spacing:.05em}
 .resp-btns{display:flex;gap:1rem;margin-bottom:.5rem}
 .key-hint{font-size:.58rem;color:var(--muted);text-align:center;letter-spacing:.1em;margin-top:.4rem}
-kbd{
-  background:var(--surf2); border:1px solid var(--border); border-radius:3px;
-  padding:.1em .45em; font-family:var(--fm); font-size:.58rem; color:var(--text);
-}
+kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:.1em .45em;font-family:var(--fm);font-size:.58rem;color:var(--text)}
 
-/* ── Staircase visualiser ───────────────────────────────────────── */
-.staircase-viz{
-  background:var(--surf2); border:1px solid var(--border);
-  border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;
-}
-.staircase-viz .viz-label{
-  font-size:.6rem; letter-spacing:.15em; color:var(--muted);
-  text-transform:uppercase; margin-bottom:.65rem;
-}
-.staircase-dots{
-  display:flex; align-items:flex-end; gap:4px; height:48px;
-  overflow:hidden;
-}
-.staircase-dots .sdot{
-  width:8px; border-radius:2px 2px 0 0; flex-shrink:0;
-  transition:height .3s ease, background .3s;
-  min-height:4px;
-}
-.sdot.yes{background:var(--yes)}
-.sdot.no{background:var(--no)}
-.sdot.current{background:var(--accent);animation:blink 1s ease-in-out infinite}
-
-.level-display{
-  display:flex; justify-content:space-between; align-items:baseline;
-  margin-top:.65rem;
-}
-.level-display .lval{
-  font-family:var(--fd); font-size:1.8rem; font-weight:300; color:var(--accent);
-}
+/* Staircase viz */
+.staircase-viz{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.staircase-viz .viz-label{font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.65rem}
+.staircase-dots{display:flex;align-items:flex-end;gap:4px;height:48px;overflow:hidden}
+.sdot{width:8px;border-radius:2px 2px 0 0;flex-shrink:0;transition:height .3s ease,background .3s;min-height:4px}
+.sdot.yes{background:var(--yes)}.sdot.no{background:var(--no)}
+.level-display{display:flex;justify-content:space-between;align-items:baseline;margin-top:.65rem}
+.level-display .lval{font-family:var(--fd);font-size:1.8rem;font-weight:300;color:var(--accent)}
 .level-display .lunit{font-size:.65rem;color:var(--muted);letter-spacing:.1em}
 .level-display .rev-count{font-size:.65rem;color:var(--muted);letter-spacing:.08em}
 
-/* ── Threshold result card ──────────────────────────────────────── */
+/* Debug tags (shown during testing, hidden in production) */
+.debug-tags{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.dtag{font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem}
+.dtag.highlight{color:var(--accent);background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.25)}
+
+/* Threshold cards */
 .thresh-card{
-  background:var(--surf2); border:1px solid var(--border2);
-  border-radius:8px; padding:1.1rem 1.5rem; margin-bottom:1.25rem;
-  display:flex; align-items:center; gap:1.25rem;
+  background:var(--surf2);border:1px solid var(--border2);border-radius:8px;
+  padding:1.1rem 1.5rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1.25rem;
 }
-.thresh-card .freq-tag{
-  font-size:.6rem; letter-spacing:.15em; color:var(--accent2);
-  text-transform:uppercase; background:rgba(126,184,247,.1);
-  border:1px solid rgba(126,184,247,.2); border-radius:3px;
-  padding:.2rem .5rem; white-space:nowrap;
-}
-.thresh-card .tval{
-  font-family:var(--fd); font-size:1.5rem; font-weight:300; color:var(--accent);
-}
+.thresh-card .freq-tag{font-size:.6rem;letter-spacing:.15em;color:var(--accent2);text-transform:uppercase;background:rgba(126,184,247,.1);border:1px solid rgba(126,184,247,.2);border-radius:3px;padding:.2rem .5rem;white-space:nowrap}
+.thresh-card .tval{font-family:var(--fd);font-size:1.5rem;font-weight:300;color:var(--accent)}
 .thresh-card .tdesc{font-size:.68rem;color:var(--muted);margin-top:.1rem}
 
-/* ── Complete results table ─────────────────────────────────────── */
-.results-wrap{
-  background:var(--surf2); border:1px solid var(--border);
-  border-radius:8px; overflow:hidden; margin-bottom:1.5rem;
-  max-height:240px; overflow-y:auto;
-}
-.results-wrap table{width:100%;border-collapse:collapse;font-size:.68rem}
-.results-wrap th{
-  color:var(--accent); text-align:left; padding:.45rem .75rem;
-  border-bottom:1px solid var(--border); font-size:.6rem;
-  letter-spacing:.1em; background:var(--surf3);
-  position:sticky; top:0;
-}
-.results-wrap td{padding:.32rem .75rem;border-bottom:1px solid rgba(255,255,255,.03)}
+/* Note box */
+.note{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.15);border-radius:7px;padding:.9rem 1.1rem;font-size:.69rem;color:var(--muted);line-height:1.8;letter-spacing:.03em}
+.note a{color:var(--accent);text-decoration:none}.note a:hover{text-decoration:underline}
+.note strong{color:var(--text)}.note code{color:var(--accent2);font-family:var(--fm)}
 
-.send-status{font-size:.7rem;text-align:center;margin:.65rem 0;min-height:1.2em;letter-spacing:.05em}
-.send-status.ok{color:var(--yes)}
-.send-status.err{color:var(--no)}
-.send-status.pending{color:var(--muted)}
-
-/* ── Steps list ─────────────────────────────────────────────────── */
+/* Steps list */
 .steps{list-style:none;display:flex;flex-direction:column;gap:.85rem;margin-bottom:2rem}
 .steps li{display:flex;gap:.85rem;font-size:.76rem;line-height:1.7}
-.steps li .num{
-  width:22px;height:22px;flex-shrink:0;margin-top:.15rem;
-  background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:.6rem;color:var(--accent);
-}
+.steps li .num{width:22px;height:22px;flex-shrink:0;margin-top:.15rem;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--accent)}
 
-/* ── Upload zone ────────────────────────────────────────────────── */
-.upload-zone{
-  background:var(--surf2);border:1px dashed var(--border);border-radius:8px;
-  padding:1.5rem;text-align:center;cursor:pointer;transition:.2s;position:relative;
-}
+/* Upload / URL */
+.tabs{display:flex;gap:.4rem;margin-bottom:.9rem}
+.tab{flex:1;padding:.5rem;border-radius:5px;background:var(--surf2);border:1px solid var(--border);font-family:var(--fm);font-size:.66rem;letter-spacing:.06em;color:var(--muted);cursor:pointer;text-align:center;transition:.15s}
+.tab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,169,110,.08)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.upload-zone{background:var(--surf2);border:1px dashed var(--border);border-radius:8px;padding:1.5rem;text-align:center;cursor:pointer;transition:.2s;position:relative}
 .upload-zone:hover,.upload-zone.over{border-color:var(--accent);background:rgba(200,169,110,.04)}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .upload-zone .icon{font-size:1.6rem;opacity:.35;margin-bottom:.35rem}
 .upload-zone .hint{font-size:.68rem;color:var(--muted);letter-spacing:.04em}
-
 .file-list{display:flex;flex-direction:column;gap:.28rem;margin-top:.75rem;max-height:150px;overflow-y:auto}
-.file-chip{
-  display:flex;align-items:center;gap:.5rem;
-  background:var(--surf2);border:1px solid var(--border);border-radius:4px;
-  padding:.3rem .7rem;font-size:.66rem;color:var(--text);
-}
+.file-chip{display:flex;align-items:center;gap:.5rem;background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.3rem .7rem;font-size:.66rem;color:var(--text)}
 .file-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--yes);flex-shrink:0}
 
+/* Results */
+.results-wrap{background:var(--surf2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem;max-height:280px;overflow-y:auto}
+.results-wrap table{width:100%;border-collapse:collapse;font-size:.67rem}
+.results-wrap th{color:var(--accent);text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--border);font-size:.6rem;letter-spacing:.1em;background:var(--surf3);position:sticky;top:0}
+.results-wrap td{padding:.32rem .6rem;border-bottom:1px solid rgba(255,255,255,.03)}
+
+.send-status{font-size:.7rem;text-align:center;margin:.65rem 0;min-height:1.2em;letter-spacing:.05em}
+.send-status.ok{color:var(--yes)}.send-status.err{color:var(--no)}.send-status.pending{color:var(--muted)}
 .err-msg{color:var(--no);font-size:.68rem;margin-top:.4rem;letter-spacing:.04em;min-height:1.2em}
 
-/* ── Tab switcher ───────────────────────────────────────────────── */
-.tabs{display:flex;gap:.4rem;margin-bottom:.9rem}
-.tab{
-  flex:1;padding:.5rem;border-radius:5px;background:var(--surf2);
-  border:1px solid var(--border);font-family:var(--fm);font-size:.66rem;
-  letter-spacing:.06em;color:var(--muted);cursor:pointer;text-align:center;transition:.15s;
-}
-.tab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,169,110,.08)}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ── Loading spinner ────────────────────────────────────────────── */
-.spinner{
-  display:inline-block;width:14px;height:14px;
-  border:2px solid var(--border2);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .7s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Config status ──────────────────────────────────────────────── */
-.config-status{
-  display:flex;align-items:center;gap:.65rem;
-  font-size:.68rem;color:var(--muted);margin-bottom:1.5rem;
-  padding:.65rem .9rem;
-  background:var(--surf2);border:1px solid var(--border);border-radius:6px;
-}
+/* Config status */
+.config-status{display:flex;align-items:center;gap:.65rem;font-size:.68rem;color:var(--muted);margin-bottom:1.5rem;padding:.65rem .9rem;background:var(--surf2);border:1px solid var(--border);border-radius:6px}
 .config-status.ok{color:var(--yes);border-color:rgba(94,207,138,.2);background:rgba(94,207,138,.05)}
 .config-status.err{color:var(--no);border-color:rgba(224,96,95,.2);background:rgba(224,96,95,.05)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Preamble player */
+.preamble-player{
+  background:var(--surf2);border:1px solid var(--border);border-radius:10px;
+  padding:1.5rem;text-align:center;margin-bottom:1.75rem;
+}
+.preamble-player .preamble-label{font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem}
+.preamble-status{font-size:.7rem;color:var(--muted);margin-top:.6rem;letter-spacing:.06em;min-height:1.2em}
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <div class="wordmark">
     <div class="lab">Psychoacoustics Laboratory</div>
     <h1>Temporal <em>Masking</em> Test</h1>
     <div class="sub">Adaptive threshold · Forward &amp; backward masking</div>
-    <div style="font-size:.55rem;color:var(--muted);margin-top:.5rem;letter-spacing:.15em;opacity:.6">v<span id="versionDisplay">—</span></div>
+    <div class="ver">v<span id="versionDisplay">—</span></div>
   </div>
 
   <div class="card">
 
-    <!-- ══════════════════════════════════════
-         S1 — RESEARCHER SETUP
-    ═══════════════════════════════════════ -->
-    <div id="s-setup" class="screen active">
-      <div class="sh"><span class="tag">Researcher</span><h2>Session Setup</h2></div>
-
-      <div id="configStatus" class="config-status">
-        <div class="spinner"></div> Loading config.json…
-      </div>
-
-      <div class="note" style="margin-bottom:1.35rem">
-        This app reads its settings from <code>config.json</code> in the same folder.
-        EmailJS credentials, staircase parameters, and stimulus path are all set there —
-        no need to touch this screen once configured.
-        See the <strong>README</strong> for EmailJS setup instructions
-        (<a href="https://www.emailjs.com" target="_blank">emailjs.com</a> — free, 200 emails/month).
-        Credentials entered below override config.json and are saved in the browser.
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl">EmailJS Public Key</label>
-          <input type="text" id="ejsKey" placeholder="from config.json or override here" autocomplete="off">
-        </div>
-        <div class="field">
-          <label class="lbl">Service ID</label>
-          <input type="text" id="ejsService" placeholder="service_…" autocomplete="off">
-        </div>
-        <div class="field">
-          <label class="lbl">Template ID</label>
-          <input type="text" id="ejsTemplate" placeholder="template_…" autocomplete="off">
-        </div>
-        <div class="field">
-          <label class="lbl">Your email address</label>
-          <input type="email" id="researcherEmail" placeholder="you@university.ac.uk" autocomplete="off">
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="sh" style="margin-bottom:1rem"><span class="tag">Stimuli</span><h2>Audio Files</h2></div>
-
-      <div class="tabs">
-        <div class="tab active" id="tab-upload" onclick="switchTab('upload')">↑ Upload files</div>
-        <div class="tab" id="tab-url" onclick="switchTab('url')">⊞ Use stimuli/ folder</div>
-      </div>
-
-      <div class="tab-panel active" id="panel-upload">
-        <div class="upload-zone" id="uploadZone">
-          <input type="file" id="fileInput" accept="audio/*" multiple>
-          <div class="icon">⬆</div>
-          <div class="hint">Click or drag & drop all WAV / MP3 files at once</div>
-        </div>
-        <div class="file-list" id="fileList"></div>
-      </div>
-
-      <div class="tab-panel" id="panel-url">
-        <div class="note" style="margin-bottom:.85rem">
-          Generates the full file list automatically from <code>config.json</code> parameters
-          (path, frequencies, levels, delays, conditions). Click <strong>Generate file list</strong>
-          to preview, then edit if needed. Files are fetched from your hosted <code>stimuli/</code> folder.
-        </div>
-        <button class="btn btn-ghost" onclick="generateUrlList()" style="margin-bottom:.75rem;width:100%">
-          ⟳ Generate file list from config
-        </button>
-        <textarea id="urlList" placeholder="Click Generate above, or paste paths manually — one per line…" style="min-height:140px;font-size:.65rem"></textarea>
-        <div style="font-size:.63rem;color:var(--muted);margin-top:.4rem" id="urlCount"></div>
-      </div>
-
-      <div class="err-msg" id="setupErr"></div>
-      <button class="btn btn-primary" onclick="setupNext()">Save &amp; hand to participant →</button>
+<!-- ══════════════════════════════════════
+     S1 — RESEARCHER SETUP
+═══════════════════════════════════════ -->
+<div id="s-setup" class="screen active">
+  <div class="sh"><span class="tag">Researcher</span><h2>Session Setup</h2></div>
+  <div id="configStatus" class="config-status"><div class="spinner"></div> Loading config.json…</div>
+  <div class="note" style="margin-bottom:1.35rem">
+    Settings are loaded from <code>config.json</code>. EmailJS credentials entered below
+    override config and are saved in the browser. See the README for setup instructions.
+  </div>
+  <div class="grid2">
+    <div class="field"><label class="lbl">EmailJS Public Key</label><input type="text" id="ejsKey" placeholder="user_…" autocomplete="off"></div>
+    <div class="field"><label class="lbl">Service ID</label><input type="text" id="ejsService" placeholder="service_…" autocomplete="off"></div>
+    <div class="field"><label class="lbl">Template ID</label><input type="text" id="ejsTemplate" placeholder="template_…" autocomplete="off"></div>
+    <div class="field"><label class="lbl">Your email address</label><input type="email" id="researcherEmail" placeholder="you@university.ac.uk" autocomplete="off"></div>
+  </div>
+  <div class="divider"></div>
+  <div class="sh" style="margin-bottom:1rem"><span class="tag">Stimuli</span><h2>Audio Files</h2></div>
+  <div class="tabs">
+    <div class="tab active" id="tab-upload" onclick="switchTab('upload')">↑ Upload files</div>
+    <div class="tab" id="tab-url" onclick="switchTab('url')">⊞ Use stimuli/ folder</div>
+  </div>
+  <div class="tab-panel active" id="panel-upload">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="audio/*" multiple>
+      <div class="icon">⬆</div>
+      <div class="hint">Click or drag & drop all WAV / MP3 files at once</div>
     </div>
+    <div class="file-list" id="fileList"></div>
+  </div>
+  <div class="tab-panel" id="panel-url">
+    <div class="note" style="margin-bottom:.85rem">Generates file list from <code>config.json</code> parameters. Click Generate, check count, then proceed.</div>
+    <button class="btn btn-ghost" onclick="generateUrlList()" style="margin-bottom:.75rem;width:100%">⟳ Generate file list from config</button>
+    <textarea id="urlList" placeholder="Click Generate above, or paste paths manually…" style="min-height:120px;font-size:.65rem"></textarea>
+    <div style="font-size:.63rem;color:var(--muted);margin-top:.4rem" id="urlCount"></div>
+  </div>
+  <div class="err-msg" id="setupErr"></div>
+  <button class="btn btn-primary" onclick="setupNext()">Save &amp; hand to participant →</button>
+</div>
 
 
-    <!-- ══════════════════════════════════════
-         S2 — PARTICIPANT QUESTIONNAIRE
-    ═══════════════════════════════════════ -->
-    <div id="s-participant" class="screen">
-      <div class="sh"><span class="tag">Step 1 of 4</span><h2>About You</h2></div>
-      <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7">
-        Please answer a few short questions before we begin. All information is kept strictly confidential and used only for research purposes.
-      </p>
-
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl">First name <span class="req">*</span></label>
-          <input type="text" id="pName" placeholder="Your first name" autocomplete="given-name">
-        </div>
-        <div class="field">
-          <label class="lbl">Age <span class="req">*</span></label>
-          <input type="number" id="pAge" placeholder="e.g. 24" min="10" max="110">
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Gender</label>
-        <div class="radio-group">
-          <input type="radio" name="gender" id="g1" value="Female"><label for="g1">Female</label>
-          <input type="radio" name="gender" id="g2" value="Male"><label for="g2">Male</label>
-          <input type="radio" name="gender" id="g3" value="Non-binary"><label for="g3">Non-binary</label>
-          <input type="radio" name="gender" id="g4" value="Prefer not to say"><label for="g4">Prefer not to say</label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Musical / audio training</label>
-        <div class="radio-group">
-          <input type="radio" name="training" id="t1" value="None"><label for="t1">None</label>
-          <input type="radio" name="training" id="t2" value="Amateur"><label for="t2">Amateur</label>
-          <input type="radio" name="training" id="t3" value="Semi-professional"><label for="t3">Semi-professional</label>
-          <input type="radio" name="training" id="t4" value="Professional"><label for="t4">Professional</label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Years of listening / musical experience</label>
-        <select id="pExperience">
-          <option value="" disabled selected>— select —</option>
-          <option>0 – 2 years</option>
-          <option>3 – 5 years</option>
-          <option>6 – 10 years</option>
-          <option>11 – 20 years</option>
-          <option>More than 20 years</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Known hearing impairments?</label>
-        <div class="radio-group">
-          <input type="radio" name="hearing" id="h1" value="None"><label for="h1">None</label>
-          <input type="radio" name="hearing" id="h2" value="Mild hearing loss"><label for="h2">Mild loss</label>
-          <input type="radio" name="hearing" id="h3" value="Moderate hearing loss"><label for="h3">Moderate loss</label>
-          <input type="radio" name="hearing" id="h4" value="Tinnitus"><label for="h4">Tinnitus</label>
-          <input type="radio" name="hearing" id="h5" value="Other / unsure"><label for="h5">Other / unsure</label>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Additional hearing notes (optional)</label>
-        <textarea id="pHearingNotes" placeholder="e.g. mild tinnitus in left ear, wear hearing aids…"></textarea>
-      </div>
-
-      <div class="field">
-        <label class="lbl">Listening device today</label>
-        <div class="radio-group">
-          <input type="radio" name="device" id="d1" value="Over-ear headphones"><label for="d1">Over-ear headphones</label>
-          <input type="radio" name="device" id="d2" value="In-ear headphones"><label for="d2">In-ear headphones</label>
-          <input type="radio" name="device" id="d3" value="Wireless earbuds"><label for="d3">Wireless earbuds</label>
-          <input type="radio" name="device" id="d4" value="Speakers"><label for="d4">Speakers</label>
-        </div>
-      </div>
-
-      <div class="err-msg" id="partErr"></div>
-      <button class="btn btn-primary" onclick="participantNext()">Continue →</button>
+<!-- ══════════════════════════════════════
+     S2 — PARTICIPANT QUESTIONNAIRE
+═══════════════════════════════════════ -->
+<div id="s-participant" class="screen">
+  <div class="sh"><span class="tag">Step 1 of 4</span><h2>About You</h2></div>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7">Please answer a few short questions before we begin. All information is kept strictly confidential.</p>
+  <div class="grid2">
+    <div class="field"><label class="lbl">First name <span class="req">*</span></label><input type="text" id="pName" placeholder="Your first name" autocomplete="given-name"></div>
+    <div class="field"><label class="lbl">Age <span class="req">*</span></label><input type="number" id="pAge" placeholder="e.g. 24" min="10" max="110"></div>
+  </div>
+  <div class="field"><label class="lbl">Gender</label>
+    <div class="radio-group">
+      <input type="radio" name="gender" id="g1" value="Female"><label for="g1">Female</label>
+      <input type="radio" name="gender" id="g2" value="Male"><label for="g2">Male</label>
+      <input type="radio" name="gender" id="g3" value="Non-binary"><label for="g3">Non-binary</label>
+      <input type="radio" name="gender" id="g4" value="Prefer not to say"><label for="g4">Prefer not to say</label>
     </div>
-
-
-    <!-- ══════════════════════════════════════
-         S3 — INSTRUCTIONS
-    ═══════════════════════════════════════ -->
-    <div id="s-instructions" class="screen">
-      <div class="sh"><span class="tag">Step 2 of 4</span><h2>Instructions</h2></div>
-      <ul class="steps">
-        <li><span class="num">1</span><span>Put on your headphones and find a quiet environment before continuing.</span></li>
-        <li><span class="num">2</span><span><strong>Part 1 — Calibration:</strong> You will hear a series of short noise bursts. A tone may or may not be present. This part adapts to find the faintest level you can reliably detect. It runs twice — once at each test frequency.</span></li>
-        <li><span class="num">3</span><span><strong>Part 2 — Main test:</strong> Using your calibrated threshold, a tailored set of stimuli tests how noise affects your perception of tones at different time offsets before and after the noise burst.</span></li>
-        <li><span class="num">4</span><span>On each trial, press <strong>▶ Play</strong>, listen carefully, then click <strong style="color:var(--yes)">Yes</strong> or <strong style="color:var(--no)">No</strong>. You may replay each stimulus once before responding.</span></li>
-        <li><span class="num">5</span><span>Trust your first instinct — there are no right or wrong answers, only your honest perception.</span></li>
-      </ul>
-      <button class="btn btn-primary" onclick="beginCalibration()">Begin calibration →</button>
+  </div>
+  <div class="field"><label class="lbl">Musical / audio training</label>
+    <div class="radio-group">
+      <input type="radio" name="training" id="t1" value="None"><label for="t1">None</label>
+      <input type="radio" name="training" id="t2" value="Amateur"><label for="t2">Amateur</label>
+      <input type="radio" name="training" id="t3" value="Semi-professional"><label for="t3">Semi-professional</label>
+      <input type="radio" name="training" id="t4" value="Professional"><label for="t4">Professional</label>
     </div>
-
-
-    <!-- ══════════════════════════════════════
-         S4 — CALIBRATION (STAIRCASE)
-    ═══════════════════════════════════════ -->
-    <div id="s-calibration" class="screen">
-      <div id="cal-stage-badge" class="stage-badge">
-        <span class="dot"></span>
-        <span id="cal-badge-text">Stage 1 · Calibration</span>
-      </div>
-
-      <div class="sh" style="margin-bottom:.5rem">
-        <span class="tag" id="cal-freq-tag">1 kHz</span>
-        <h2>Level Detection</h2>
-      </div>
-      <p style="font-size:.72rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7">
-        Listen to each stimulus and indicate whether you heard a tone. The level will adjust based on your responses to find your detection threshold.
-      </p>
-
-      <div class="staircase-viz">
-        <div class="viz-label">Response history</div>
-        <div class="staircase-dots" id="staircaseDots"></div>
-        <div class="level-display">
-          <div>
-            <span class="lval" id="currentLevelDisplay">—</span>
-            <span class="lunit">dB SPL</span>
-          </div>
-          <div class="rev-count" id="reversalCount">Reversals: 0 / <span id="revTarget">8</span></div>
-        </div>
-      </div>
-
-      <div class="player">
-        <button class="play-btn" id="calPlayBtn" onclick="playCalStimulus()">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <div class="waveform" id="calWaveform">
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        </div>
-        <div style="margin-top:.5rem">
-          <div class="replay-hint" id="calReplayHint">↺ Click to replay</div>
-          <div class="status-txt" id="calStatusTxt">Press play to listen</div>
-        </div>
-      </div>
-
-      <div class="question">
-        <p>Did you hear a tone?</p>
-        <div class="hint" id="calHint">Listen before responding</div>
-      </div>
-      <div class="resp-btns">
-        <button class="btn btn-no"  id="calBtnNo"  disabled onclick="calResponse(false)">✗ &nbsp;No</button>
-        <button class="btn btn-yes" id="calBtnYes" disabled onclick="calResponse(true)">✓ &nbsp;Yes</button>
-      </div>
-      <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+  </div>
+  <div class="field"><label class="lbl">Years of listening / musical experience</label>
+    <select id="pExperience">
+      <option value="" disabled selected>— select —</option>
+      <option>0 – 2 years</option><option>3 – 5 years</option>
+      <option>6 – 10 years</option><option>11 – 20 years</option>
+      <option>More than 20 years</option>
+    </select>
+  </div>
+  <div class="field"><label class="lbl">Known hearing impairments?</label>
+    <div class="radio-group">
+      <input type="radio" name="hearing" id="h1" value="None"><label for="h1">None</label>
+      <input type="radio" name="hearing" id="h2" value="Mild hearing loss"><label for="h2">Mild loss</label>
+      <input type="radio" name="hearing" id="h3" value="Moderate hearing loss"><label for="h3">Moderate loss</label>
+      <input type="radio" name="hearing" id="h4" value="Tinnitus"><label for="h4">Tinnitus</label>
+      <input type="radio" name="hearing" id="h5" value="Other / unsure"><label for="h5">Other / unsure</label>
     </div>
-
-
-    <!-- ══════════════════════════════════════
-         S5 — BETWEEN FREQUENCIES
-    ═══════════════════════════════════════ -->
-    <div id="s-between" class="screen">
-      <div class="sh"><span class="tag">Step 3 of 4</span><h2>Calibration Complete</h2></div>
-
-      <div id="thresholdCards"></div>
-
-      <p style="font-size:.76rem;color:var(--muted);line-height:1.75;margin-bottom:1.75rem">
-        Your detection threshold for the first frequency has been established.
-        The next calibration block will now measure your threshold at the second frequency.
-        Take a short break if you need one before continuing.
-      </p>
-      <button class="btn btn-primary" id="betweenBtn" onclick="startNextFreq()">Continue to next frequency →</button>
+  </div>
+  <div class="field"><label class="lbl">Additional hearing notes (optional)</label>
+    <textarea id="pHearingNotes" placeholder="e.g. mild tinnitus in left ear, wear hearing aids…"></textarea>
+  </div>
+  <div class="field"><label class="lbl">Listening device today</label>
+    <div class="radio-group">
+      <input type="radio" name="device" id="d1" value="Over-ear headphones"><label for="d1">Over-ear headphones</label>
+      <input type="radio" name="device" id="d2" value="In-ear headphones"><label for="d2">In-ear headphones</label>
+      <input type="radio" name="device" id="d3" value="Wireless earbuds"><label for="d3">Wireless earbuds</label>
+      <input type="radio" name="device" id="d4" value="Speakers"><label for="d4">Speakers</label>
     </div>
+  </div>
+  <div class="err-msg" id="partErr"></div>
+  <button class="btn btn-primary" onclick="participantNext()">Continue →</button>
+</div>
 
 
-    <!-- ══════════════════════════════════════
-         S6 — BEFORE MAIN TEST
-    ═══════════════════════════════════════ -->
-    <div id="s-pretrial" class="screen">
-      <div class="sh"><span class="tag">Step 4 of 4</span><h2>Calibration Complete</h2></div>
+<!-- ══════════════════════════════════════
+     S3 — STAGE 1 PREAMBLE
+═══════════════════════════════════════ -->
+<div id="s-s1preamble" class="screen">
+  <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration — Listen First</h2></div>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7">
+    Please listen to the following introduction before beginning the calibration phase.
+    This will explain what you are going to hear and what you need to do.
+  </p>
+  <div class="preamble-player">
+    <div class="preamble-label">Stage 1 introduction</div>
+    <button class="play-btn" id="s1preambleBtn" onclick="playPreamble('stage_1_preamble.wav','s1preambleBtn','s1preambleStatus','s1preamblePlayed')">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="preamble-status" id="s1preambleStatus">Press play to hear the introduction</div>
+  </div>
+  <div class="note" style="margin-bottom:1.5rem">
+    After listening you may replay the introduction as many times as you wish before continuing.
+  </div>
+  <button class="btn btn-primary" id="s1preambleNext" disabled onclick="showScreen('s-instructions')">Continue to calibration →</button>
+</div>
 
-      <div id="allThresholdCards"></div>
 
-      <p style="font-size:.76rem;color:var(--muted);line-height:1.75;margin-bottom:.75rem">
-        Both thresholds have been established. The main test will now present stimuli at levels
-        selected around your individual threshold for each frequency — this gives the most
-        informative data for the masking analysis.
-      </p>
-      <div class="note" style="margin-bottom:1.5rem">
-        <strong>Reminder:</strong> each stimulus contains a noise burst. A short tone probe
-        may occur <em>before</em>, <em>during</em>, or <em>after</em> the noise — or not at all.
-        Listen carefully and respond honestly.
-      </div>
-      <div style="font-size:.7rem;color:var(--muted);margin-bottom:1.5rem">
-        Selected stimuli: <strong id="stage2Count" style="color:var(--accent)">—</strong> trials across
-        <strong id="stage2Freqs" style="color:var(--accent2)">—</strong>
-      </div>
-      <button class="btn btn-primary" onclick="beginMainTest()">Begin main test →</button>
+<!-- ══════════════════════════════════════
+     S4 — INSTRUCTIONS (Stage 1)
+═══════════════════════════════════════ -->
+<div id="s-instructions" class="screen">
+  <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration Instructions</h2></div>
+  <ul class="steps">
+    <li><span class="num">1</span><span>Make sure you are wearing headphones and are in a quiet environment.</span></li>
+    <li><span class="num">2</span><span>You will hear a series of short stimuli. Each contains a noise burst — a tone may or may not be present within it.</span></li>
+    <li><span class="num">3</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find your detection threshold.</span></li>
+    <li><span class="num">4</span><span>This calibration runs once for each test frequency. You will be told which frequency you are currently being tested on.</span></li>
+    <li><span class="num">5</span><span>Trust your first instinct — there are no right or wrong answers.</span></li>
+  </ul>
+  <button class="btn btn-primary" onclick="beginCalibration()">Begin calibration →</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S5 — CALIBRATION (Stage 1 staircase)
+═══════════════════════════════════════ -->
+<div id="s-calibration" class="screen">
+  <div class="stage-badge"><span class="dot"></span><span id="calBadgeText">Stage 1 · Calibration</span></div>
+  <div class="freq-block-header">
+    <div class="freq-pill" id="calFreqPill">—</div>
+    <div class="freq-desc">Calibration — finding your detection threshold at this frequency</div>
+  </div>
+  <div class="staircase-viz">
+    <div class="viz-label">Response history</div>
+    <div class="staircase-dots" id="staircaseDots"></div>
+    <div class="level-display">
+      <div><span class="lval" id="calLevelDisplay">—</span><span class="lunit"> dB</span></div>
+      <div class="rev-count">Reversals: <span id="calRevCount">0</span> / <span id="calRevTarget">—</span></div>
     </div>
-
-
-    <!-- ══════════════════════════════════════
-         S7 — MAIN TEST TRIALS
-    ═══════════════════════════════════════ -->
-    <div id="s-trial" class="screen">
-      <div class="stage-badge stage2">
-        <span class="dot"></span>
-        <span>Stage 2 · Temporal Masking</span>
-      </div>
-
-      <div class="prog-wrap">
-        <div class="prog-meta">
-          <span>Trial <strong id="trialNum" style="color:var(--text)">1</strong> of <span id="trialTotal">—</span></span>
-          <span id="progPct">0%</span>
-        </div>
-        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
-      </div>
-
-      <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
-        <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialFreqTag">—</span>
-        <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialCondTag">—</span>
-        <span style="font-size:.62rem;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:.25rem .65rem" id="trialDelayTag">—</span>
-        <span style="font-size:.62rem;color:var(--accent);background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:4px;padding:.25rem .65rem" id="trialLevelTag">—</span>
-      </div>
-
-      <div class="player">
-        <button class="play-btn" id="trialPlayBtn" onclick="playTrialStimulus()">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <div class="waveform" id="trialWaveform">
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        </div>
-        <div style="margin-top:.5rem">
-          <div class="replay-hint" id="trialReplayHint">↺ Click to replay</div>
-          <div class="status-txt" id="trialStatusTxt">Press play to listen</div>
-        </div>
-      </div>
-
-      <div class="question">
-        <p>Did you hear a tone in the stimulus?</p>
-        <div class="hint">You must listen at least once before responding</div>
-      </div>
-      <div class="resp-btns">
-        <button class="btn btn-no"  id="trialBtnNo"  disabled onclick="trialResponse(false)">✗ &nbsp;No</button>
-        <button class="btn btn-yes" id="trialBtnYes" disabled onclick="trialResponse(true)">✓ &nbsp;Yes</button>
-      </div>
-      <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+  </div>
+  <div class="player">
+    <button class="play-btn" id="calPlayBtn" onclick="playCalStimulus()">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="waveform" id="calWaveform">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
-
-
-    <!-- ══════════════════════════════════════
-         S8 — COMPLETE
-    ═══════════════════════════════════════ -->
-    <div id="s-complete" class="screen">
-      <div style="text-align:center;margin-bottom:1.5rem">
-        <div style="font-size:2.8rem;margin-bottom:.6rem">✓</div>
-        <div style="font-family:var(--fd);font-size:1.6rem;font-weight:300;color:#fff;margin-bottom:.35rem">Test Complete</div>
-        <div style="font-size:.68rem;color:var(--muted);letter-spacing:.08em" id="completeSub">Thank you for participating.</div>
-      </div>
-
-      <div id="allThresholdCardsFinal" style="margin-bottom:1.25rem"></div>
-
-      <div class="results-wrap" id="resultsTable"></div>
-
-      <div class="send-status" id="sendStatus"></div>
-
-      <div class="btn-row">
-        <button class="btn btn-ghost" style="flex:1" onclick="dlCSV()">↓ CSV</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="dlJSON()">↓ JSON</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="sendEmail()">✉ Resend</button>
-      </div>
-      <button class="btn btn-primary" onclick="resetToParticipant()">New participant →</button>
+    <div style="margin-top:.5rem">
+      <div class="replay-hint" id="calReplayHint">↺ Click to replay</div>
+      <div class="status-txt" id="calStatusTxt">Press play to listen</div>
     </div>
+  </div>
+  <div class="question"><p>Did you hear a tone?</p><div class="hint">Listen before responding</div></div>
+  <div class="resp-btns">
+    <button class="btn btn-no"  id="calBtnNo"  disabled onclick="calResponse(false)">✗ &nbsp;No</button>
+    <button class="btn btn-yes" id="calBtnYes" disabled onclick="calResponse(true)">✓ &nbsp;Yes</button>
+  </div>
+  <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S6 — BETWEEN CAL FREQUENCIES
+═══════════════════════════════════════ -->
+<div id="s-between-cal" class="screen">
+  <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration — First Frequency Done</h2></div>
+  <div id="betweenCalCards"></div>
+  <p style="font-size:.76rem;color:var(--muted);line-height:1.75;margin-bottom:1.75rem">
+    Your detection threshold for the first frequency has been measured.
+    Take a short break if needed, then continue to the second frequency.
+  </p>
+  <button class="btn btn-primary" onclick="startNextCalFreq()">Continue →</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S7 — STAGE 2 PREAMBLE
+═══════════════════════════════════════ -->
+<div id="s-s2preamble" class="screen">
+  <div class="sh"><span class="tag">Step 3 of 4</span><h2>Main Test — Listen First</h2></div>
+  <div id="allCalThreshCards" style="margin-bottom:1.25rem"></div>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7">
+    Both calibration thresholds have been established. Please listen to this introduction
+    before beginning the main test.
+  </p>
+  <div class="preamble-player">
+    <div class="preamble-label">Stage 2 introduction</div>
+    <button class="play-btn" id="s2preambleBtn" onclick="playPreamble('stage_2_preamble.wav','s2preambleBtn','s2preambleStatus','s2preamblePlayed')">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="preamble-status" id="s2preambleStatus">Press play to hear the introduction</div>
+  </div>
+  <button class="btn btn-primary" id="s2preambleNext" disabled onclick="beginMainTest()">Begin main test →</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S8 — STAGE 2 TRIAL (mini-staircase)
+═══════════════════════════════════════ -->
+<div id="s-trial" class="screen">
+  <div class="stage-badge s2"><span class="dot"></span><span id="trialBadgeText">Stage 2 · Temporal Masking</span></div>
+
+  <!-- Overall block progress -->
+  <div class="prog-wrap">
+    <div class="prog-meta">
+      <span>Overall progress</span>
+      <span id="overallProgPct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="overallProgFill"></div></div>
+  </div>
+
+  <!-- Block overview pips -->
+  <div class="block-overview" id="blockOverview"></div>
+
+  <!-- Current block header -->
+  <div class="freq-block-header">
+    <div class="freq-pill" id="trialFreqPill">—</div>
+    <div>
+      <div style="font-size:.72rem;color:var(--text);margin-bottom:.2rem" id="trialCondLabel">—</div>
+      <div style="font-size:.65rem;color:var(--muted)" id="trialDelayLabel">—</div>
+    </div>
+  </div>
+
+  <!-- Mini-staircase viz -->
+  <div class="staircase-viz">
+    <div class="viz-label">Response history — this delay</div>
+    <div class="staircase-dots" id="miniStaircaseDots"></div>
+    <div class="level-display">
+      <div><span class="lval" id="miniLevelDisplay">—</span><span class="lunit"> dB</span></div>
+      <div class="rev-count">Reversals: <span id="miniRevCount">0</span> / <span id="miniRevTarget">—</span></div>
+    </div>
+  </div>
+
+  <!-- Debug tags (remove for production) -->
+  <div class="debug-tags">
+    <span class="dtag" id="dbgFreq">—</span>
+    <span class="dtag" id="dbgCond">—</span>
+    <span class="dtag" id="dbgDelay">—</span>
+    <span class="dtag highlight" id="dbgLevel">—</span>
+  </div>
+
+  <div class="player">
+    <button class="play-btn" id="trialPlayBtn" onclick="playTrialStimulus()">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="waveform" id="trialWaveform">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+    <div style="margin-top:.5rem">
+      <div class="replay-hint" id="trialReplayHint">↺ Click to replay</div>
+      <div class="status-txt" id="trialStatusTxt">Press play to listen</div>
+    </div>
+  </div>
+  <div class="question"><p>Did you hear a tone in the stimulus?</p><div class="hint">Listen at least once before responding</div></div>
+  <div class="resp-btns">
+    <button class="btn btn-no"  id="trialBtnNo"  disabled onclick="trialResponse(false)">✗ &nbsp;No</button>
+    <button class="btn btn-yes" id="trialBtnYes" disabled onclick="trialResponse(true)">✓ &nbsp;Yes</button>
+  </div>
+  <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S9 — BETWEEN BLOCKS (within Stage 2)
+═══════════════════════════════════════ -->
+<div id="s-between-blocks" class="screen">
+  <div class="sh"><span class="tag">Short break</span><h2>Block Complete</h2></div>
+  <div id="betweenBlockMsg" style="font-size:.76rem;color:var(--muted);line-height:1.75;margin-bottom:1.5rem"></div>
+  <div class="note" style="margin-bottom:1.5rem">
+    Take a moment to rest your ears before continuing. When you are ready, press Continue.
+  </div>
+  <button class="btn btn-primary" onclick="startNextBlock()">Continue →</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S10 — COMPLETE
+═══════════════════════════════════════ -->
+<div id="s-complete" class="screen">
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:2.8rem;margin-bottom:.6rem">✓</div>
+    <div style="font-family:var(--fd);font-size:1.6rem;font-weight:300;color:#fff;margin-bottom:.35rem">Test Complete</div>
+    <div style="font-size:.68rem;color:var(--muted);letter-spacing:.08em" id="completeSub">Thank you for participating.</div>
+  </div>
+  <div id="finalThreshCards" style="margin-bottom:1.25rem"></div>
+  <div class="results-wrap" id="resultsTable"></div>
+  <div class="send-status" id="sendStatus"></div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" style="flex:1" onclick="dlCSV()">↓ CSV</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="dlJSON()">↓ JSON</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="sendEmail()">✉ Resend</button>
+  </div>
+  <button class="btn btn-primary" onclick="resetToParticipant()">New participant →</button>
+</div>
 
   </div><!-- /card -->
 </div><!-- /wrap -->
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════════
-   TEMPORAL MASKING TEST — Full adaptive two-stage application
-   v1.5
-
-   Filename convention (set in config.json):
-     {condition}_{delay}_{frequency}_{level}dB.wav
-   Examples:
-     simultaneous_0ms_1kHz_60dB.wav   ← Stage 1 calibration
-     forward_10ms_2kHz_55dB.wav       ← Stage 2 forward masking
-     backward_20ms_1kHz_65dB.wav      ← Stage 2 backward masking
-
-   EmailJS setup: https://www.emailjs.com
-     Template variables: {{to_email}} {{subject}} {{message}} {{csv_data}}
+   TEMPORAL MASKING TEST  v2.0
+   Two-stage adaptive protocol:
+     Stage 1 — 2-down/1-up staircase, one per frequency (blocked)
+     Stage 2 — 1-up/1-down mini-staircases per delay/condition/frequency
+               Frequencies blocked & paired (fwd+bwd), order randomised
+   Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-// ── Version ────────────────────────────────────────────────────────
-const APP_VERSION = '1.5';
+const APP_VERSION = '2.0';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
-// ── Global config & state ──────────────────────────────────────────
-let CFG = null;   // loaded from config.json
-
-// EmailJS
+// ── Config & EmailJS ───────────────────────────────────────────────
+let CFG = null;
 let EJS_KEY = '', EJS_SERVICE = '', EJS_TEMPLATE = '', RESEARCHER_EMAIL = '';
 
-// Participant
-let participant = {};
+// ── Participant ────────────────────────────────────────────────────
+let participant  = {};
 let sessionStart = '';
 
-// Stimuli
-let allFiles = [];     // all loaded {name, parsed{condition,delay,freq,level}, isFile, fileObj?, url?}
+// ── All loaded stimuli ─────────────────────────────────────────────
+let allFiles  = [];
 let audioMode = 'upload';
 
-// Staircase state (per frequency block)
-let freqOrder    = [];   // e.g. ['1kHz','2kHz'] shuffled
-let freqIndex    = 0;    // which frequency we're on
-let thresholds   = {};   // {freq: dB}
-let calHistory   = [];   // [{level, response}] for current freq block
-let staircaseLog = [];   // full log for output
+// ── Stage 1 state ──────────────────────────────────────────────────
+let s1FreqOrder   = [];   // shuffled frequencies
+let s1FreqIndex   = 0;
+let s1Thresholds  = {};   // {freq: dB}
+let s1StaircaseLog = [];
 
-// Staircase algorithm vars
-let calLevel       = 70;
-let consecutiveYes = 0;
-let reversals      = 0;
-let lastDirection  = null;   // 'up'|'down'
-let usingLargeStep = true;
-let reversalLevels = [];     // levels at each reversal
-let calHasPlayed   = false;
-let calTrialCount  = 0;      // total trials this block (for max_trials escape)
+// S1 staircase vars (reset per freq block)
+let s1Level       = 50;
+let s1ConsecYes   = 0;
+let s1Reversals   = 0;
+let s1LastDir     = null;
+let s1LargeStep   = true;
+let s1RevLevels   = [];
+let s1HasPlayed   = false;
+let s1TrialCount  = 0;
 
-// Stage 2
-let stage2Files  = [];
-let trialOrder   = [];
-let currentTrial = 0;
-let trialResponses = [];
-let trialHasPlayed = false;
+// ── Stage 2 state ──────────────────────────────────────────────────
+// Block = one (frequency, condition) pair
+// Within each block, iterate through all delays, each as a mini-staircase
+let s2Blocks      = [];   // [{freq, condition}] — randomised order
+let s2BlockIndex  = 0;
+let s2Results     = [];   // [{freq, condition, delay_ms, threshold_dB, trials:[]}]
 
-// Audio
+// Current mini-staircase vars
+let msLevel       = 0;
+let msConsecYes   = 0;
+let msReversals   = 0;
+let msLastDir     = null;
+let msLargeStep   = true;
+let msRevLevels   = [];
+let msHasPlayed   = false;
+let msTrialCount  = 0;
+let msTrials      = [];   // individual trials for current delay
+
+// Within-block delay iteration
+let msDelays      = [];   // delay values for current block
+let msDelayIndex  = 0;
+
+// ── Audio ──────────────────────────────────────────────────────────
 let audioCtx   = null;
 let currentSrc = null;
 
-// ── Load config.json on page load ─────────────────────────────────
+// Preamble played flags
+let s1preamblePlayed = false;
+let s2preamblePlayed = false;
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIG LOAD
+// ══════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', loadConfig);
 
 async function loadConfig() {
-  const statusEl = document.getElementById('configStatus');
+  const el = document.getElementById('configStatus');
   try {
-    const resp = await fetch('config.json');
-    if (!resp.ok) throw new Error('config.json not found');
-    CFG = await resp.json();
-    statusEl.className = 'config-status ok';
-    statusEl.innerHTML = '✓ config.json loaded successfully';
-
-    // Pre-fill form fields from config (localStorage overrides)
+    const r = await fetch('config.json');
+    if (!r.ok) throw new Error('Not found');
+    CFG = await r.json();
+    el.className = 'config-status ok';
+    el.textContent = '✓ config.json loaded';
     prefill('ejsKey',          CFG.researcher?.emailjs_key,      'ejs_key');
     prefill('ejsService',      CFG.researcher?.emailjs_service,  'ejs_svc');
     prefill('ejsTemplate',     CFG.researcher?.emailjs_template, 'ejs_tmpl');
     prefill('researcherEmail', CFG.researcher?.researcher_email, 'ejs_email');
   } catch(e) {
-    // config.json not found — use defaults, allow manual entry
-    CFG = {
-      staircase: {
-        rule:'2down1up', start_level:70, step_large:10, step_small:5,
-        reversals_total:8, reversals_for_threshold:6, min_level:20, max_level:80
-      },
-      stimuli: {
-        path:'stimuli/', frequencies:['1kHz','2kHz'], level_step:5,
-        masker_level:80, calibration_tag:'simultaneous', stage2_window:10,
-        filename_pattern:'{condition}_{delay}_{frequency}_{level}dB.wav'
-      }
-    };
-    statusEl.className = 'config-status err';
-    statusEl.innerHTML = '⚠ config.json not found — using defaults. Enter EmailJS credentials manually.';
-    // Try to restore from localStorage
-    prefill('ejsKey',          null, 'ejs_key');
-    prefill('ejsService',      null, 'ejs_svc');
-    prefill('ejsTemplate',     null, 'ejs_tmpl');
-    prefill('researcherEmail', null, 'ejs_email');
+    CFG = defaultCFG();
+    el.className = 'config-status err';
+    el.textContent = '⚠ config.json not found — using defaults';
+    prefill('ejsKey',null,'ejs_key'); prefill('ejsService',null,'ejs_svc');
+    prefill('ejsTemplate',null,'ejs_tmpl'); prefill('researcherEmail',null,'ejs_email');
   }
-
-  document.getElementById('revTarget').textContent = CFG.staircase.reversals_total;
+  document.getElementById('calRevTarget').textContent = CFG.staircase_s1.reversals_total;
+  document.getElementById('miniRevTarget').textContent = CFG.staircase_s2.reversals_total;
 }
 
-function prefill(fieldId, configVal, lsKey) {
-  const lsVal = tryLS(lsKey);
-  const val   = lsVal || configVal || '';
-  if (val) document.getElementById(fieldId).value = val;
+function defaultCFG() {
+  return {
+    staircase_s1:{ rule:'2down1up', start_level:50, step_large:10, step_small:5,
+      reversals_total:8, reversals_for_threshold:6, min_level:0, max_level:50, max_trials:60 },
+    staircase_s2:{ rule:'1up1down', start_level_offset:10, step_large:10, step_small:5,
+      reversals_total:6, reversals_for_threshold:4, max_trials:30 },
+    stimuli:{ path:'stimuli/', frequencies:['1kHz','2kHz'],
+      delays_ms:[0,5,10,15,20,25,30,35,40,45,50],
+      conditions:['forward','backward'], level_step:5,
+      min_level:0, max_level:50, masker_level:80,
+      calibration_tag:'simultaneous' }
+  };
 }
 
-function tryLS(key, val) {
-  try {
-    if (val !== undefined) { localStorage.setItem(key, val); return; }
-    return localStorage.getItem(key) || '';
-  } catch(e) { return ''; }
+function prefill(id, cfgVal, lsKey) {
+  const v = tryLS(lsKey) || cfgVal || '';
+  if (v) document.getElementById(id).value = v;
+}
+function tryLS(k, v) {
+  try { if(v!==undefined){localStorage.setItem(k,v);return;} return localStorage.getItem(k)||''; } catch(e){return '';}
 }
 
-// ── Tab & file upload ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// FILE LOADING
+// ══════════════════════════════════════════════════════════════════
 function switchTab(mode) {
   audioMode = mode;
-  ['upload','url'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t===mode);
-    document.getElementById('panel-'+t).classList.toggle('active', t===mode);
+  ['upload','url'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===mode);
+    document.getElementById('panel-'+t).classList.toggle('active',t===mode);
   });
 }
 
-const fileInput  = document.getElementById('fileInput');
+const fileInput = document.getElementById('fileInput');
 const uploadZone = document.getElementById('uploadZone');
-fileInput.addEventListener('change', () => ingestFiles(fileInput.files));
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('over'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('over'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault(); uploadZone.classList.remove('over');
-  ingestFiles(e.dataTransfer.files);
-});
+fileInput.addEventListener('change', ()=>ingestFiles(fileInput.files));
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('over')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('over'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('over');ingestFiles(e.dataTransfer.files)});
 
 function ingestFiles(fList) {
-  const audio = Array.from(fList).filter(f =>
-    f.type.startsWith('audio/') || /\.(wav|mp3|ogg|flac)$/i.test(f.name)
-  );
-  if (!audio.length) { showErr('setupErr','No recognised audio files found.'); return; }
+  const audio = Array.from(fList).filter(f=>f.type.startsWith('audio/')||/\.(wav|mp3|ogg|flac)$/i.test(f.name));
+  if (!audio.length) { showErr('setupErr','No audio files found.'); return; }
   clearErr('setupErr');
-  allFiles = audio.map(f => ({
-    name: f.name, parsed: parseFilename(f.name), isFile: true, fileObj: f
-  })).filter(f => f.parsed !== null);
-
-  const unparsed = audio.length - allFiles.length;
-  renderFileList(unparsed);
+  allFiles = audio.map(f=>({name:f.name,parsed:parseFilename(f.name),isFile:true,fileObj:f})).filter(f=>f.parsed);
+  const skip = audio.length - allFiles.length;
+  renderFileList();
+  if (skip) showErr('setupErr',`⚠ ${skip} file(s) skipped — check naming convention`);
 }
 
-function renderFileList(unparsed) {
+function renderFileList() {
   const el = document.getElementById('fileList');
   el.innerHTML = '';
-  allFiles.forEach(f => {
-    const c = document.createElement('div');
-    c.className = 'file-chip';
-    c.innerHTML = `<span class="dot"></span><span>${f.name}</span>`;
-    el.appendChild(c);
+  allFiles.forEach(f=>{
+    const c=document.createElement('div'); c.className='file-chip';
+    c.innerHTML=`<span class="dot"></span><span>${f.name}</span>`; el.appendChild(c);
   });
-  if (unparsed > 0) {
-    showErr('setupErr', `⚠ ${unparsed} file(s) could not be parsed and were skipped. Check naming convention.`);
-  }
 }
 
 function generateUrlList() {
-  if (!CFG) { showErr('setupErr','config.json not loaded yet.'); return; }
-  const s      = CFG.stimuli;
-  const path   = s.path || 'stimuli/';
-  const freqs  = s.frequencies  || ['1kHz','2kHz'];
-  const delays = s.delays_ms    || [10, 20, 50, 100];
-  const minL   = CFG.staircase.min_level;
-  const maxL   = CFG.staircase.max_level;
-  const step   = s.level_step   || 5;
-  const calTag = s.calibration_tag || 'simultaneous';
-
+  if (!CFG) return;
+  const s = CFG.stimuli;
+  const path   = s.path||'stimuli/';
+  const freqs  = s.frequencies||['1kHz','2kHz'];
+  const delays = s.delays_ms||[0,5,10,15,20,25,30,35,40,45,50];
+  const conds  = s.conditions||['forward','backward'];
+  const minL   = s.min_level||0;
+  const maxL   = s.max_level||50;
+  const step   = s.level_step||5;
+  const calTag = s.calibration_tag||'simultaneous';
   const levels = [];
-  for (let l = minL; l <= maxL; l += step) levels.push(l);
-
+  for(let l=minL;l<=maxL;l+=step) levels.push(l);
   const lines = [];
-
-  freqs.forEach(freq => {
-    // Stage 1 — calibration (simultaneous, 0ms)
-    levels.forEach(lvl => {
-      lines.push(`${path}${calTag}_0ms_${freq}_${lvl}dB.wav`);
-    });
-
-    // Stage 2 — forward & backward at each delay & level
-    ['forward','backward'].forEach(cond => {
-      delays.forEach(delay => {
-        levels.forEach(lvl => {
-          lines.push(`${path}${cond}_${delay}ms_${freq}_${lvl}dB.wav`);
-        });
-      });
-    });
+  freqs.forEach(freq=>{
+    levels.forEach(lvl=>lines.push(`${path}${calTag}_0ms_${freq}_${lvl}dB.wav`));
+    conds.forEach(cond=>delays.forEach(d=>levels.forEach(lvl=>lines.push(`${path}${cond}_${d}ms_${freq}_${lvl}dB.wav`))));
   });
-
   document.getElementById('urlList').value = lines.join('\n');
-  document.getElementById('urlCount').textContent =
-    `${lines.length} files listed — edit to remove any that don't exist in your stimuli folder`;
+  document.getElementById('urlCount').textContent = `${lines.length} files listed`;
   clearErr('setupErr');
 }
 
 function parseUrls() {
-  return (document.getElementById('urlList').value.trim()
-    .split('\n').map(l=>l.trim()).filter(Boolean))
-    .map(u => {
-      const name = u.split('/').pop();
-      const parsed = parseFilename(name);
-      return parsed ? {name, parsed, isFile:false, url:u} : null;
-    }).filter(Boolean);
+  return document.getElementById('urlList').value.trim().split('\n')
+    .map(l=>l.trim()).filter(Boolean)
+    .map(u=>{const name=u.split('/').pop();const parsed=parseFilename(name);return parsed?{name,parsed,isFile:false,url:u}:null})
+    .filter(Boolean);
 }
 
-// ── Filename parser ────────────────────────────────────────────────
-// Expected: {condition}_{delay}_{frequency}_{level}dB.wav
-// e.g. forward_10ms_1kHz_60dB.wav
 function parseFilename(name) {
-  // Strip extension
-  const base = name.replace(/\.[^.]+$/, '');
+  const base = name.replace(/\.[^.]+$/,'');
   const parts = base.split('_');
   if (parts.length < 4) return null;
-
-  // Level is last part: e.g. "60dB"
   const levelMatch = parts[parts.length-1].match(/^(\d+)dB$/i);
   if (!levelMatch) return null;
   const level = parseInt(levelMatch[1]);
-
-  // Frequency is second-to-last: e.g. "1kHz"
   const freqMatch = parts[parts.length-2].match(/^(\d+(?:\.\d+)?)(k?Hz)$/i);
   if (!freqMatch) return null;
-  const frequency = parts[parts.length-2].toLowerCase()
-    .replace('khz','kHz').replace(/^(\d)/, m => m); // normalise
-
-  // Delay is third-to-last: e.g. "10ms" or "0ms"
+  const frequency = normaliseFreq(parts[parts.length-2]);
   const delayMatch = parts[parts.length-3].match(/^(\d+)ms$/i);
   if (!delayMatch) return null;
   const delay = parseInt(delayMatch[1]);
-
-  // Condition is everything before: e.g. "forward" or "simultaneous"
-  const condition = parts.slice(0, parts.length-3).join('_').toLowerCase();
-
+  const condition = parts.slice(0,parts.length-3).join('_').toLowerCase();
   return { condition, delay, frequency, level };
 }
 
-// ── Setup → participant ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// SETUP → PARTICIPANT
+// ══════════════════════════════════════════════════════════════════
 function setupNext() {
   EJS_KEY          = document.getElementById('ejsKey').value.trim();
   EJS_SERVICE      = document.getElementById('ejsService').value.trim();
   EJS_TEMPLATE     = document.getElementById('ejsTemplate').value.trim();
   RESEARCHER_EMAIL = document.getElementById('researcherEmail').value.trim();
-
-  if (!EJS_KEY || !EJS_SERVICE || !EJS_TEMPLATE || !RESEARCHER_EMAIL) {
+  if (!EJS_KEY||!EJS_SERVICE||!EJS_TEMPLATE||!RESEARCHER_EMAIL) {
     showErr('setupErr','Please complete all four EmailJS fields.'); return;
   }
-  tryLS('ejs_key', EJS_KEY); tryLS('ejs_svc', EJS_SERVICE);
-  tryLS('ejs_tmpl', EJS_TEMPLATE); tryLS('ejs_email', RESEARCHER_EMAIL);
-  emailjs.init({ publicKey: EJS_KEY });
+  tryLS('ejs_key',EJS_KEY); tryLS('ejs_svc',EJS_SERVICE);
+  tryLS('ejs_tmpl',EJS_TEMPLATE); tryLS('ejs_email',RESEARCHER_EMAIL);
+  emailjs.init({publicKey:EJS_KEY});
 
-  if (audioMode === 'upload') {
-    if (!allFiles.length) { showErr('setupErr','Please add at least one audio file.'); return; }
+  if (audioMode==='upload') {
+    if (!allFiles.length) { showErr('setupErr','Please add audio files.'); return; }
   } else {
     allFiles = parseUrls();
-    if (!allFiles.length) {
-      showErr('setupErr','No valid file paths found. Click "Generate file list from config" or enter paths manually.'); return;
-    }
-    // Quick probe — fetch HEAD on first file to catch path errors early
+    if (!allFiles.length) { showErr('setupErr','No valid file paths. Click Generate or enter manually.'); return; }
     const testUrl = allFiles[0].url;
-    fetch(testUrl, {method:'HEAD'}).then(r => {
-      if (!r.ok) {
-        showErr('setupErr',
-          `⚠ First file returned HTTP ${r.status}: ${testUrl} — check your stimuli/ folder path and filenames.`);
-      }
-    }).catch(() => {
-      showErr('setupErr',
-        `⚠ Could not reach: ${testUrl} — are you running from GitHub Pages or a local server?`);
-    });
+    fetch(testUrl,{method:'HEAD'}).then(r=>{
+      if (!r.ok) showErr('setupErr',`⚠ HTTP ${r.status}: ${testUrl}`);
+    }).catch(()=>showErr('setupErr',`⚠ Cannot reach: ${testUrl}`));
   }
-
-  // Validate we have calibration files
   const calTag = CFG.stimuli.calibration_tag;
-  const calFiles = allFiles.filter(f => f.parsed.condition === calTag);
-  if (!calFiles.length) {
-    showErr('setupErr', `No calibration files found (expected condition="${calTag}" in filename).`); return;
+  if (!allFiles.some(f=>f.parsed.condition===calTag)) {
+    showErr('setupErr',`No calibration files found (condition="${calTag}")`); return;
   }
-
   clearErr('setupErr');
   showScreen('s-participant');
 }
 
-// ── Participant → instructions ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// PARTICIPANT → S1 PREAMBLE
+// ══════════════════════════════════════════════════════════════════
 function participantNext() {
   const name = document.getElementById('pName').value.trim();
   const age  = document.getElementById('pAge').value.trim();
-  if (!name)  { showErr('partErr','Please enter your first name.'); return; }
-  if (!age || +age < 10) { showErr('partErr','Please enter a valid age.'); return; }
-
+  if (!name) { showErr('partErr','Please enter your first name.'); return; }
+  if (!age||+age<10) { showErr('partErr','Please enter a valid age.'); return; }
   participant = {
     name, age:+age,
-    gender:       radioVal('gender')   || 'Not stated',
-    training:     radioVal('training') || 'Not stated',
-    experience:   document.getElementById('pExperience').value || 'Not stated',
-    hearingStatus:radioVal('hearing')  || 'Not stated',
-    hearingNotes: document.getElementById('pHearingNotes').value.trim() || '—',
-    listenDevice: radioVal('device')   || 'Not stated',
+    gender:       radioVal('gender')  ||'Not stated',
+    training:     radioVal('training')||'Not stated',
+    experience:   document.getElementById('pExperience').value||'Not stated',
+    hearingStatus:radioVal('hearing') ||'Not stated',
+    hearingNotes: document.getElementById('pHearingNotes').value.trim()||'—',
+    listenDevice: radioVal('device')  ||'Not stated',
   };
   sessionStart = new Date().toISOString();
   clearErr('partErr');
-  showScreen('s-instructions');
+  showScreen('s-s1preamble');
 }
 
-// ── Begin calibration ──────────────────────────────────────────────
-function beginCalibration() {
-  // Shuffle frequency order
-  const freqs = [...(CFG.stimuli.frequencies || ['1kHz','2kHz'])];
-  freqOrder = shuffle(freqs);
-  freqIndex = 0;
-  thresholds = {};
-  staircaseLog = [];
-  startFreqBlock();
-}
+// ══════════════════════════════════════════════════════════════════
+// PREAMBLE PLAYBACK (shared for S1 and S2)
+// ══════════════════════════════════════════════════════════════════
+async function playPreamble(filename, btnId, statusId, playedFlag) {
+  const btn    = document.getElementById(btnId);
+  const status = document.getElementById(statusId);
 
-function startFreqBlock() {
-  const freq = freqOrder[freqIndex];
+  // Determine which next button to unlock
+  const nextBtnId = btnId === 's1preambleBtn' ? 's1preambleNext' : 's2preambleNext';
 
-  // Reset staircase state
-  calLevel       = CFG.staircase.start_level;
-  consecutiveYes = 0;
-  reversals      = 0;
-  lastDirection  = null;
-  usingLargeStep = true;
-  reversalLevels = [];
-  calHistory     = [];
-  calHasPlayed   = false;
-  calTrialCount  = 0;
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (audioCtx.state==='suspended') await audioCtx.resume();
+  if (currentSrc) { try{currentSrc.stop()}catch(e){} currentSrc=null; }
 
-  document.getElementById('cal-freq-tag').textContent  = freq;
-  document.getElementById('cal-badge-text').textContent = `Stage 1 · Calibration · ${freq}`;
-  document.getElementById('currentLevelDisplay').textContent = calLevel;
-  document.getElementById('reversalCount').innerHTML =
-    `Reversals: 0 / <span id="revTarget">${CFG.staircase.reversals_total}</span>`;
-  document.getElementById('staircaseDots').innerHTML = '';
-
-  setCalEnabled(false);
-  setCalStatus('Press play to listen');
-  setCalPlaying(false);
-  document.getElementById('calReplayHint').style.visibility = 'hidden';
-
-  showScreen('s-calibration');
-}
-
-// ── Calibration playback ───────────────────────────────────────────
-async function playCalStimulus() {
-  const freq   = freqOrder[freqIndex];
-  const calTag = CFG.stimuli.calibration_tag;
-
-  // Find the file matching current level & frequency
-  const candidates = allFiles.filter(f =>
-    f.parsed.condition === calTag &&
-    normaliseFreq(f.parsed.frequency) === normaliseFreq(freq) &&
-    f.parsed.level === calLevel
-  );
-
-  if (!candidates.length) {
-    // Level out of range of available files — clamp and warn
-    const available = allFiles
-      .filter(f => f.parsed.condition===calTag && normaliseFreq(f.parsed.frequency)===normaliseFreq(freq))
-      .map(f => f.parsed.level).sort((a,b)=>a-b);
-
-    if (!available.length) {
-      setCalStatus(`⚠ No calibration files found for ${freq}. Check filenames.`);
-      return;
-    }
-    // Clamp to nearest available
-    calLevel = available.reduce((prev,cur) =>
-      Math.abs(cur-calLevel) < Math.abs(prev-calLevel) ? cur : prev
-    );
-    return playCalStimulus();
-  }
-
-  const file = candidates[0];
-  await playAudio(file, 'cal');
-}
-
-// ── Calibration response & staircase logic ─────────────────────────
-function calResponse(heard) {
-  if (!calHasPlayed) return;
-
-  const sc    = CFG.staircase;
-  const step  = usingLargeStep ? sc.step_large : sc.step_small;
-  const maxT  = sc.max_trials || 60;
-
-  calTrialCount++;
-  calHistory.push({ level: calLevel, response: heard });
-  staircaseLog.push({
-    freq: freqOrder[freqIndex], trial: calHistory.length,
-    level: calLevel, heard, reversal: false
-  });
-
-  // Update dots visualisation
-  addStaircaseDot(heard);
-
-  // ── Max trials escape ──────────────────────────────────────────
-  // Check before staircase logic so we don't take another step first
-  if (calTrialCount >= maxT) {
-    const thresh = computeThresholdFromReversals();
-    thresholds[freqOrder[freqIndex]] = thresh;
-    staircaseLog[staircaseLog.length-1].note = 'max_trials_reached';
-    finishFreqBlock(thresh);
-    return;
-  }
-
-  let direction;
-  if (heard) {
-    consecutiveYes++;
-    if (consecutiveYes >= 2) {
-      // 2 consecutive yes → go down (harder)
-      direction = 'down';
-      calLevel  = Math.max(sc.min_level, calLevel - step);
-      consecutiveYes = 0;
-    } else {
-      // 1 yes, waiting for 2nd — reset UI for next play
-      setCalEnabled(false);
-      setCalStatus('Press play to listen');
-      setCalPlaying(false);
-      calHasPlayed = false;
-      document.getElementById('currentLevelDisplay').textContent = calLevel;
-      document.getElementById('calReplayHint').style.visibility = 'hidden';
-      return;
-    }
-  } else {
-    // 1 no → go up (easier)
-    direction = 'up';
-    consecutiveYes = 0;
-    calLevel = Math.min(sc.max_level, calLevel + step);
-  }
-
-  // Check for reversal
-  if (lastDirection && direction !== lastDirection) {
-    reversals++;
-    reversalLevels.push(heard ? calLevel + step : calLevel - step);
-    usingLargeStep = false;
-    staircaseLog[staircaseLog.length-1].reversal = true;
-
-    document.getElementById('reversalCount').innerHTML =
-      `Reversals: ${reversals} / <span id="revTarget">${sc.reversals_total}</span>`;
-
-    if (reversals >= sc.reversals_total) {
-      // Normal completion — enough reversals accumulated
-      const thresh = computeThresholdFromReversals();
-      thresholds[freqOrder[freqIndex]] = thresh;
-      finishFreqBlock(thresh);
-      return;
-    }
-  }
-  lastDirection = direction;
-
-  // Next trial
-  document.getElementById('currentLevelDisplay').textContent = calLevel;
-  setCalEnabled(false);
-  setCalStatus('Press play to listen');
-  setCalPlaying(false);
-  calHasPlayed = false;
-  document.getElementById('calReplayHint').style.visibility = 'hidden';
-}
-
-// Compute threshold from however many reversals we have.
-// If fewer than reversals_for_threshold have accumulated, use all of them.
-// If none at all, fall back to the current level as best estimate.
-function computeThresholdFromReversals() {
-  const sc = CFG.staircase;
-  if (reversalLevels.length === 0) return calLevel;
-  const useLast = reversalLevels.slice(-sc.reversals_for_threshold);
-  return Math.round(useLast.reduce((a,b) => a+b, 0) / useLast.length);
-}
-
-function addStaircaseDot(heard) {
-  const container = document.getElementById('staircaseDots');
-  const maxH = 48;
-  const sc   = CFG.staircase;
-  const pct  = (calLevel - sc.min_level) / (sc.max_level - sc.min_level);
-  const h    = Math.max(4, Math.round(pct * maxH));
-
-  const d = document.createElement('div');
-  d.className = `sdot ${heard ? 'yes' : 'no'}`;
-  d.style.height = h + 'px';
-  d.title = `${calLevel} dB — ${heard ? 'heard' : 'not heard'}`;
-  container.appendChild(d);
-
-  // Auto-scroll
-  container.scrollLeft = container.scrollWidth;
-}
-
-function finishFreqBlock(thresh) {
-  freqIndex++;
-  if (freqIndex < freqOrder.length) {
-    // More frequencies to calibrate
-    renderThresholdCards('thresholdCards', false);
-    showScreen('s-between');
-  } else {
-    // All calibration done → select Stage 2 files
-    selectStage2Files();
-    renderThresholdCards('allThresholdCards', true);
-    renderThresholdCards('allThresholdCardsFinal', true);
-
-    document.getElementById('stage2Count').textContent = stage2Files.length;
-    document.getElementById('stage2Freqs').textContent = freqOrder.join(' & ');
-
-    showScreen('s-pretrial');
-  }
-}
-
-function startNextFreq() {
-  startFreqBlock();
-}
-
-// ── Stage 2 file selection ─────────────────────────────────────────
-function selectStage2Files() {
-  const calTag  = CFG.stimuli.calibration_tag;
-  const window_ = CFG.stimuli.stage2_window;
-
-  stage2Files = allFiles.filter(f => {
-    if (f.parsed.condition === calTag) return false; // exclude calibration files
-    const freq   = normaliseFreq(f.parsed.frequency);
-    const thresh = thresholds[freqOrder.find(fq => normaliseFreq(fq) === freq)];
-    if (thresh === undefined) return false;
-    return Math.abs(f.parsed.level - thresh) <= window_;
-  });
-
-  // Shuffle
-  trialOrder = shuffle(stage2Files.map((_,i) => i));
-  currentTrial = 0;
-  trialResponses = [];
-}
-
-// ── Render threshold summary cards ────────────────────────────────
-function renderThresholdCards(containerId, all) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  const freqsToShow = all ? freqOrder : freqOrder.slice(0, freqIndex);
-  el.innerHTML = freqsToShow.map(freq => {
-    const t = thresholds[freq];
-    return `<div class="thresh-card">
-      <span class="freq-tag">${freq}</span>
-      <div>
-        <div class="tval">${t !== undefined ? t + ' dB' : '—'}</div>
-        <div class="tdesc">Detection threshold (${CFG.staircase.reversals_for_threshold}-reversal mean)</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── Main test ──────────────────────────────────────────────────────
-function beginMainTest() {
-  if (!stage2Files.length) {
-    alert('No Stage 2 stimuli were selected. Check that your files are named correctly and cover the expected level range.');
-    return;
-  }
-  loadTrial();
-  showScreen('s-trial');
-}
-
-function loadTrial() {
-  trialHasPlayed = false;
-  const f     = stage2Files[trialOrder[currentTrial]];
-  const total = trialOrder.length;
-  const pct   = Math.round((currentTrial / total) * 100);
-
-  document.getElementById('trialNum').textContent   = currentTrial + 1;
-  document.getElementById('trialTotal').textContent = total;
-  document.getElementById('progFill').style.width   = pct + '%';
-  document.getElementById('progPct').textContent    = pct + '%';
-
-  // Update info tags
-  document.getElementById('trialFreqTag').textContent   = f.parsed.frequency;
-  document.getElementById('trialCondTag').textContent   = f.parsed.condition;
-  document.getElementById('trialDelayTag').textContent  = f.parsed.delay + ' ms';
-  document.getElementById('trialLevelTag').textContent  = f.parsed.level + ' dB';
-
-  setTrialEnabled(false);
-  setTrialStatus('Press play to listen');
-  setTrialPlaying(false);
-  document.getElementById('trialReplayHint').style.visibility = 'hidden';
-}
-
-async function playTrialStimulus() {
-  const f = stage2Files[trialOrder[currentTrial]];
-  await playAudio(f, 'trial');
-}
-
-function trialResponse(heard) {
-  if (!trialHasPlayed) return;
-  const f = stage2Files[trialOrder[currentTrial]];
-  trialResponses.push({
-    trial:      currentTrial + 1,
-    filename:   f.name,
-    condition:  f.parsed.condition,
-    delay_ms:   f.parsed.delay,
-    frequency:  f.parsed.frequency,
-    level_dB:   f.parsed.level,
-    heard_tone: heard ? 'yes' : 'no',
-    timestamp:  new Date().toISOString(),
-  });
-  currentTrial++;
-  if (currentTrial < trialOrder.length) {
-    loadTrial();
-  } else {
-    finishTest();
-  }
-}
-
-// ── Shared audio playback ──────────────────────────────────────────
-async function playAudio(fileObj, context) {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') await audioCtx.resume();
-  if (currentSrc) { try { currentSrc.stop(); } catch(e){} currentSrc = null; }
-
-  const isCal = context === 'cal';
-  setPlayingVisual(isCal, true);
-  if (isCal) { setCalStatus('Playing…'); setCalEnabled(false); }
-  else        { setTrialStatus('Playing…'); setTrialEnabled(false); }
+  btn.classList.add('playing');
+  status.textContent = 'Playing…';
 
   try {
-    let ab;
-    if (fileObj.isFile) {
-      ab = await fileObj.fileObj.arrayBuffer();
-    } else {
-      const r = await fetch(fileObj.url);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      ab = await r.arrayBuffer();
-    }
+    const resp = await fetch(filename);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} — check ${filename} is in the root folder`);
+    const ab  = await resp.arrayBuffer();
     const buf = await audioCtx.decodeAudioData(ab);
     currentSrc = audioCtx.createBufferSource();
     currentSrc.buffer = buf;
     currentSrc.connect(audioCtx.destination);
     currentSrc.onended = () => {
-      setPlayingVisual(isCal, false);
-      if (isCal) {
-        calHasPlayed = true;
-        setCalStatus('Done — respond below');
-        setCalEnabled(true);
-        document.getElementById('calReplayHint').style.visibility = 'visible';
-      } else {
-        trialHasPlayed = true;
-        setTrialStatus('Done — respond below, or replay above');
-        setTrialEnabled(true);
-        document.getElementById('trialReplayHint').style.visibility = 'visible';
-      }
+      btn.classList.remove('playing');
+      status.textContent = 'Done — press Continue when ready, or replay above';
+      document.getElementById(nextBtnId).disabled = false;
       currentSrc = null;
+      if (playedFlag === 's1preamblePlayed') s1preamblePlayed = true;
+      else s2preamblePlayed = true;
     };
     currentSrc.start(0);
   } catch(err) {
-    setPlayingVisual(isCal, false);
-    const msg = `⚠ Playback error: ${err.message}`;
-    isCal ? setCalStatus(msg) : setTrialStatus(msg);
+    btn.classList.remove('playing');
+    status.textContent = '⚠ ' + err.message;
+    // Still unlock next button so test isn't blocked if file is missing
+    document.getElementById(nextBtnId).disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STAGE 1 — CALIBRATION STAIRCASE
+// ══════════════════════════════════════════════════════════════════
+function beginCalibration() {
+  s1FreqOrder = shuffle([...(CFG.stimuli.frequencies||['1kHz','2kHz'])]);
+  s1FreqIndex = 0;
+  s1Thresholds = {};
+  s1StaircaseLog = [];
+  startS1FreqBlock();
+}
+
+function startS1FreqBlock() {
+  const sc = CFG.staircase_s1;
+  s1Level      = sc.start_level;
+  s1ConsecYes  = 0;
+  s1Reversals  = 0;
+  s1LastDir    = null;
+  s1LargeStep  = true;
+  s1RevLevels  = [];
+  s1HasPlayed  = false;
+  s1TrialCount = 0;
+
+  const freq = s1FreqOrder[s1FreqIndex];
+  document.getElementById('calFreqPill').textContent  = freq;
+  document.getElementById('calBadgeText').textContent = `Stage 1 · Calibration · ${freq}`;
+  document.getElementById('calLevelDisplay').textContent = s1Level;
+  document.getElementById('calRevCount').textContent  = '0';
+  document.getElementById('calRevTarget').textContent = sc.reversals_total;
+  document.getElementById('staircaseDots').innerHTML  = '';
+
+  setCalEnabled(false);
+  setCalStatus('Press play to listen');
+  setCalPlaying(false);
+  document.getElementById('calReplayHint').style.visibility = 'hidden';
+  showScreen('s-calibration');
+}
+
+async function playCalStimulus() {
+  const freq   = s1FreqOrder[s1FreqIndex];
+  const calTag = CFG.stimuli.calibration_tag;
+  const sc     = CFG.staircase_s1;
+
+  let lvl = s1Level;
+  const avail = allFiles
+    .filter(f=>f.parsed.condition===calTag && normaliseFreq(f.parsed.frequency)===normaliseFreq(freq))
+    .map(f=>f.parsed.level).sort((a,b)=>a-b);
+
+  if (!avail.length) { setCalStatus(`⚠ No calibration files for ${freq}`); return; }
+  // Clamp to nearest available level
+  lvl = avail.reduce((p,c)=>Math.abs(c-lvl)<Math.abs(p-lvl)?c:p);
+  s1Level = lvl;
+  document.getElementById('calLevelDisplay').textContent = s1Level;
+
+  const file = allFiles.find(f=>f.parsed.condition===calTag&&normaliseFreq(f.parsed.frequency)===normaliseFreq(freq)&&f.parsed.level===lvl);
+  await playAudio(file,'cal');
+}
+
+function calResponse(heard) {
+  if (!s1HasPlayed) return;
+  const sc   = CFG.staircase_s1;
+  const step = s1LargeStep ? sc.step_large : sc.step_small;
+
+  s1TrialCount++;
+  s1StaircaseLog.push({freq:s1FreqOrder[s1FreqIndex],trial:s1TrialCount,level:s1Level,heard,reversal:false});
+  addCalDot(heard, s1Level, sc.min_level, sc.max_level);
+
+  // Max trials escape
+  if (s1TrialCount >= (sc.max_trials||60)) {
+    const thresh = computeThresh(s1RevLevels, sc.reversals_for_threshold, s1Level);
+    s1StaircaseLog[s1StaircaseLog.length-1].note='max_trials';
+    finishS1FreqBlock(thresh); return;
+  }
+
+  let dir;
+  if (heard) {
+    s1ConsecYes++;
+    if (s1ConsecYes >= 2) {
+      dir='down'; s1Level=Math.max(sc.min_level, s1Level-step); s1ConsecYes=0;
+    } else {
+      resetCalUI(); return; // wait for second yes
+    }
+  } else {
+    dir='up'; s1ConsecYes=0; s1Level=Math.min(sc.max_level, s1Level+step);
+  }
+
+  if (s1LastDir && dir!==s1LastDir) {
+    s1Reversals++;
+    s1RevLevels.push(heard ? s1Level+step : s1Level-step);
+    s1LargeStep=false;
+    s1StaircaseLog[s1StaircaseLog.length-1].reversal=true;
+    document.getElementById('calRevCount').textContent = s1Reversals;
+    if (s1Reversals >= sc.reversals_total) {
+      const thresh = computeThresh(s1RevLevels, sc.reversals_for_threshold, s1Level);
+      finishS1FreqBlock(thresh); return;
+    }
+  }
+  s1LastDir = dir;
+  document.getElementById('calLevelDisplay').textContent = s1Level;
+  resetCalUI();
+}
+
+function resetCalUI() {
+  s1HasPlayed=false; setCalEnabled(false);
+  setCalStatus('Press play to listen'); setCalPlaying(false);
+  document.getElementById('calReplayHint').style.visibility='hidden';
+}
+
+function finishS1FreqBlock(thresh) {
+  s1Thresholds[s1FreqOrder[s1FreqIndex]] = thresh;
+  s1FreqIndex++;
+  if (s1FreqIndex < s1FreqOrder.length) {
+    renderThreshCards('betweenCalCards', s1FreqOrder.slice(0,s1FreqIndex), s1Thresholds);
+    showScreen('s-between-cal');
+  } else {
+    // All cal done — go to S2 preamble
+    renderThreshCards('allCalThreshCards', s1FreqOrder, s1Thresholds);
+    renderThreshCards('finalThreshCards',  s1FreqOrder, s1Thresholds);
+    buildS2Blocks();
+    showScreen('s-s2preamble');
+  }
+}
+
+function startNextCalFreq() { startS1FreqBlock(); }
+
+// ══════════════════════════════════════════════════════════════════
+// STAGE 2 — BLOCK SETUP
+// ══════════════════════════════════════════════════════════════════
+function buildS2Blocks() {
+  // Pair forward+backward per frequency, randomise frequency order,
+  // randomise condition order within each frequency pair
+  const freqs  = shuffle([...s1FreqOrder]);
+  const conds  = CFG.stimuli.conditions || ['forward','backward'];
+  s2Blocks = [];
+  freqs.forEach(freq => {
+    const condOrder = shuffle([...conds]);
+    condOrder.forEach(cond => s2Blocks.push({freq, condition:cond}));
+  });
+  s2BlockIndex = 0;
+  s2Results = [];
+  buildBlockOverviewPips();
+}
+
+function buildBlockOverviewPips() {
+  const el = document.getElementById('blockOverview');
+  el.innerHTML = '';
+  s2Blocks.forEach((_,i) => {
+    const pip = document.createElement('div');
+    pip.className = 'block-pip';
+    pip.id = `pip-${i}`;
+    el.appendChild(pip);
+  });
+}
+
+function updateBlockPips() {
+  s2Blocks.forEach((_,i) => {
+    const pip = document.getElementById(`pip-${i}`);
+    if (!pip) return;
+    pip.className = 'block-pip' + (i < s2BlockIndex ? ' done' : i===s2BlockIndex ? ' active' : '');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STAGE 2 — BEGIN & BLOCK NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function beginMainTest() {
+  showScreen('s-trial');
+  startBlock(s2BlockIndex);
+}
+
+function startBlock(blockIdx) {
+  s2BlockIndex = blockIdx;
+  updateBlockPips();
+
+  const block   = s2Blocks[blockIdx];
+  const delays  = [...(CFG.stimuli.delays_ms||[0,5,10,15,20,25,30,35,40,45,50])];
+  msDelays      = shuffle(delays);  // randomise delay order within block
+  msDelayIndex  = 0;
+
+  // Update block header
+  document.getElementById('trialFreqPill').textContent = block.freq;
+  document.getElementById('trialBadgeText').textContent = `Stage 2 · ${block.condition} masking · ${block.freq}`;
+  document.getElementById('trialCondLabel').textContent = capitalise(block.condition) + ' masking';
+
+  updateOverallProgress();
+  startDelay();
+}
+
+function startDelay() {
+  const block = s2Blocks[s2BlockIndex];
+  const delay = msDelays[msDelayIndex];
+  const sc    = CFG.staircase_s2;
+  const thresh = s1Thresholds[block.freq] || CFG.staircase_s1.start_level;
+
+  // Starting level = threshold + offset, clamped to available files
+  const offset    = sc.start_level_offset || 10;
+  const targetStart = thresh + offset;
+  const avail = getAvailLevels(block.condition, delay, block.freq);
+
+  if (!avail.length) {
+    // No files for this delay — skip it
+    advanceDelay(); return;
+  }
+
+  // Clamp to nearest available
+  msLevel     = avail.reduce((p,c)=>Math.abs(c-targetStart)<Math.abs(p-targetStart)?c:p);
+  msConsecYes = 0;
+  msReversals = 0;
+  msLastDir   = null;
+  msLargeStep = true;
+  msRevLevels = [];
+  msHasPlayed = false;
+  msTrialCount= 0;
+  msTrials    = [];
+
+  document.getElementById('trialDelayLabel').textContent = `Delay: ${delay} ms`;
+  document.getElementById('miniLevelDisplay').textContent = msLevel;
+  document.getElementById('miniRevCount').textContent    = '0';
+  document.getElementById('miniRevTarget').textContent   = sc.reversals_total;
+  document.getElementById('miniStaircaseDots').innerHTML = '';
+
+  // Debug tags
+  document.getElementById('dbgFreq').textContent  = block.freq;
+  document.getElementById('dbgCond').textContent  = block.condition;
+  document.getElementById('dbgDelay').textContent = delay + ' ms';
+  document.getElementById('dbgLevel').textContent = msLevel + ' dB';
+
+  setTrialEnabled(false);
+  setTrialStatus('Press play to listen');
+  setTrialPlaying(false);
+  document.getElementById('trialReplayHint').style.visibility='hidden';
+}
+
+function getAvailLevels(condition, delay, freq) {
+  return allFiles
+    .filter(f=>f.parsed.condition===condition&&f.parsed.delay===delay&&normaliseFreq(f.parsed.frequency)===normaliseFreq(freq))
+    .map(f=>f.parsed.level).sort((a,b)=>a-b);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STAGE 2 — TRIAL PLAYBACK & RESPONSE
+// ══════════════════════════════════════════════════════════════════
+async function playTrialStimulus() {
+  const block = s2Blocks[s2BlockIndex];
+  const delay = msDelays[msDelayIndex];
+
+  // Find closest available level
+  const avail = getAvailLevels(block.condition, delay, block.freq);
+  if (!avail.length) { setTrialStatus('⚠ No files for this condition'); return; }
+  msLevel = avail.reduce((p,c)=>Math.abs(c-msLevel)<Math.abs(p-msLevel)?c:p);
+
+  const file = allFiles.find(f=>
+    f.parsed.condition===block.condition &&
+    f.parsed.delay===delay &&
+    normaliseFreq(f.parsed.frequency)===normaliseFreq(block.freq) &&
+    f.parsed.level===msLevel
+  );
+  if (!file) { setTrialStatus('⚠ File not found'); return; }
+
+  document.getElementById('dbgLevel').textContent = msLevel + ' dB';
+  await playAudio(file,'trial');
+}
+
+function trialResponse(heard) {
+  if (!msHasPlayed) return;
+  const sc    = CFG.staircase_s2;
+  const step  = msLargeStep ? sc.step_large : sc.step_small;
+  const block = s2Blocks[s2BlockIndex];
+  const delay = msDelays[msDelayIndex];
+  const avail = getAvailLevels(block.condition, delay, block.freq);
+
+  msTrialCount++;
+  msTrials.push({trial:msTrialCount, level:msLevel, heard, reversal:false});
+  addMiniDot(heard, msLevel, avail);
+  document.getElementById('dbgLevel').textContent = msLevel + ' dB';
+
+  // Max trials escape
+  if (msTrialCount >= (sc.max_trials||30)) {
+    const thresh = computeThresh(msRevLevels, sc.reversals_for_threshold, msLevel);
+    msTrials[msTrials.length-1].note='max_trials';
+    finishDelay(thresh); return;
+  }
+
+  let dir;
+  if (heard) {
+    // 1-up/1-down: one yes → go down
+    dir='down';
+    msLevel = clampToAvail(msLevel-step, avail);
+    msConsecYes=0;
+  } else {
+    dir='up';
+    msLevel = clampToAvail(msLevel+step, avail);
+    msConsecYes=0;
+  }
+
+  if (msLastDir && dir!==msLastDir) {
+    msReversals++;
+    msRevLevels.push(heard ? msLevel+step : msLevel-step);
+    msLargeStep=false;
+    msTrials[msTrials.length-1].reversal=true;
+    document.getElementById('miniRevCount').textContent = msReversals;
+    if (msReversals >= sc.reversals_total) {
+      const thresh = computeThresh(msRevLevels, sc.reversals_for_threshold, msLevel);
+      finishDelay(thresh); return;
+    }
+  }
+  msLastDir = dir;
+  document.getElementById('miniLevelDisplay').textContent = msLevel;
+
+  msHasPlayed=false; setTrialEnabled(false);
+  setTrialStatus('Press play to listen'); setTrialPlaying(false);
+  document.getElementById('trialReplayHint').style.visibility='hidden';
+}
+
+function finishDelay(thresh) {
+  const block = s2Blocks[s2BlockIndex];
+  const delay = msDelays[msDelayIndex];
+  s2Results.push({
+    freq:       block.freq,
+    condition:  block.condition,
+    delay_ms:   delay,
+    threshold_dB: thresh,
+    trials:     [...msTrials]
+  });
+  advanceDelay();
+}
+
+function advanceDelay() {
+  msDelayIndex++;
+  if (msDelayIndex < msDelays.length) {
+    startDelay();
+  } else {
+    // Block complete
+    finishBlock();
+  }
+}
+
+function finishBlock() {
+  s2BlockIndex++;
+  if (s2BlockIndex < s2Blocks.length) {
+    const nextBlock = s2Blocks[s2BlockIndex];
+    const prevBlock = s2Blocks[s2BlockIndex-1];
+    const msg = document.getElementById('betweenBlockMsg');
+
+    // Detect frequency change
+    if (nextBlock.freq !== prevBlock.freq) {
+      msg.innerHTML = `<strong style="color:var(--text)">${prevBlock.freq} ${prevBlock.condition} masking</strong> is complete.<br><br>
+        The next block is <strong style="color:var(--accent2)">${nextBlock.freq} ${nextBlock.condition} masking</strong>.
+        The tone frequency will change — take a moment to prepare.`;
+    } else {
+      msg.innerHTML = `<strong style="color:var(--text)">${prevBlock.freq} ${prevBlock.condition} masking</strong> is complete.<br><br>
+        The next block is <strong style="color:var(--accent2)">${nextBlock.freq} ${nextBlock.condition} masking</strong>.`;
+    }
+    showScreen('s-between-blocks');
+  } else {
+    finishTest();
+  }
+}
+
+function startNextBlock() {
+  showScreen('s-trial');
+  startBlock(s2BlockIndex);
+}
+
+function updateOverallProgress() {
+  const total = s2Blocks.length;
+  const done  = s2BlockIndex;
+  const pct   = Math.round((done/total)*100);
+  document.getElementById('overallProgFill').style.width = pct+'%';
+  document.getElementById('overallProgPct').textContent  = pct+'%';
+  updateBlockPips();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// AUDIO ENGINE (shared)
+// ══════════════════════════════════════════════════════════════════
+async function playAudio(fileObj, context) {
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (audioCtx.state==='suspended') await audioCtx.resume();
+  if (currentSrc) { try{currentSrc.stop()}catch(e){} currentSrc=null; }
+
+  const isCal = context==='cal';
+  setPlayingVisual(isCal,true);
+  isCal ? setCalStatus('Playing…') : setTrialStatus('Playing…');
+
+  try {
+    let ab;
+    if (fileObj.isFile) { ab = await fileObj.fileObj.arrayBuffer(); }
+    else { const r=await fetch(fileObj.url); if(!r.ok) throw new Error(`HTTP ${r.status}`); ab=await r.arrayBuffer(); }
+    const buf = await audioCtx.decodeAudioData(ab);
+    currentSrc = audioCtx.createBufferSource();
+    currentSrc.buffer=buf; currentSrc.connect(audioCtx.destination);
+    currentSrc.onended = () => {
+      setPlayingVisual(isCal,false);
+      if (isCal) {
+        s1HasPlayed=true; setCalStatus('Done — respond below'); setCalEnabled(true);
+        document.getElementById('calReplayHint').style.visibility='visible';
+      } else {
+        msHasPlayed=true; setTrialStatus('Done — respond below, or replay'); setTrialEnabled(true);
+        document.getElementById('trialReplayHint').style.visibility='visible';
+      }
+      currentSrc=null;
+    };
+    currentSrc.start(0);
+  } catch(err) {
+    setPlayingVisual(isCal,false);
+    isCal ? setCalStatus('⚠ '+err.message) : setTrialStatus('⚠ '+err.message);
     console.error(err);
   }
 }
 
-// ── Visual helpers ─────────────────────────────────────────────────
-function setCalEnabled(on) {
-  document.getElementById('calBtnYes').disabled = !on;
-  document.getElementById('calBtnNo').disabled  = !on;
-}
-function setCalStatus(t) { document.getElementById('calStatusTxt').textContent = t; }
-function setCalPlaying(on) {
-  document.getElementById('calWaveform').classList.toggle('active', on);
-  document.getElementById('calPlayBtn').classList.toggle('playing', on);
-}
-
-function setTrialEnabled(on) {
-  document.getElementById('trialBtnYes').disabled = !on;
-  document.getElementById('trialBtnNo').disabled  = !on;
-}
-function setTrialStatus(t) { document.getElementById('trialStatusTxt').textContent = t; }
-function setTrialPlaying(on) {
-  document.getElementById('trialWaveform').classList.toggle('active', on);
-  document.getElementById('trialPlayBtn').classList.toggle('playing', on);
-}
-
-function setPlayingVisual(isCal, on) {
-  isCal ? setCalPlaying(on) : setTrialPlaying(on);
-}
-
-// ── Finish & email ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// FINISH & EXPORT
+// ══════════════════════════════════════════════════════════════════
 function finishTest() {
-  document.getElementById('progFill').style.width = '100%';
-  document.getElementById('progPct').textContent  = '100%';
+  updateOverallProgress();
   document.getElementById('completeSub').textContent =
-    `${trialResponses.length} trials · ${participant.name} · ` +
+    `${s2Results.length} delay conditions tested · ${participant.name} · `+
     new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
   renderResultsTable();
   showScreen('s-complete');
@@ -1464,50 +1319,37 @@ function finishTest() {
 }
 
 function renderResultsTable() {
-  let html = `<table><thead><tr>
-    <th>#</th><th>Condition</th><th>Delay</th><th>Freq</th><th>Level</th><th>Response</th>
+  let html=`<table><thead><tr>
+    <th>Freq</th><th>Condition</th><th>Delay (ms)</th><th>Threshold (dB)</th><th>Trials</th>
   </tr></thead><tbody>`;
-  trialResponses.forEach(r => {
-    const col = r.heard_tone==='yes' ? 'color:var(--yes)' : 'color:var(--no)';
-    html += `<tr>
-      <td>${r.trial}</td>
-      <td>${r.condition}</td>
-      <td>${r.delay_ms}ms</td>
-      <td>${r.frequency}</td>
-      <td>${r.level_dB}dB</td>
-      <td style="${col}">${r.heard_tone.toUpperCase()}</td>
+  s2Results.forEach(r=>{
+    html+=`<tr>
+      <td>${r.freq}</td><td>${r.condition}</td><td>${r.delay_ms}</td>
+      <td style="color:var(--accent)">${r.threshold_dB}</td><td>${r.trials.length}</td>
     </tr>`;
   });
-  document.getElementById('resultsTable').innerHTML = html + '</tbody></table>';
+  document.getElementById('resultsTable').innerHTML=html+'</tbody></table>';
 }
 
-// ── Email ──────────────────────────────────────────────────────────
 async function sendEmail() {
-  const el = document.getElementById('sendStatus');
-  el.className = 'send-status pending';
-  el.textContent = '✉ Sending results to researcher…';
-
+  const el=document.getElementById('sendStatus');
+  el.className='send-status pending'; el.textContent='✉ Sending results…';
   try {
-    await emailjs.send(EJS_SERVICE, EJS_TEMPLATE, {
-      to_email:  RESEARCHER_EMAIL,
-      subject:   `Masking Test — ${participant.name} — ${new Date().toLocaleDateString('en-GB')}`,
-      message:   buildSummary(),
-      csv_data:  buildCSV(),
+    await emailjs.send(EJS_SERVICE,EJS_TEMPLATE,{
+      to_email:RESEARCHER_EMAIL,
+      subject:`Masking Test — ${participant.name} — ${new Date().toLocaleDateString('en-GB')}`,
+      message:buildSummary(), csv_data:buildCSV(),
     });
-    el.className   = 'send-status ok';
-    el.textContent = `✓ Results sent to ${RESEARCHER_EMAIL}`;
+    el.className='send-status ok'; el.textContent=`✓ Sent to ${RESEARCHER_EMAIL}`;
   } catch(err) {
-    el.className   = 'send-status err';
-    el.textContent = `✗ Email failed (${err.text||err.message||'unknown'}). Please download CSV.`;
-    console.error(err);
+    el.className='send-status err';
+    el.textContent=`✗ Email failed (${err.text||err.message||'unknown'}). Download CSV.`;
   }
 }
 
-// ── Data builders ──────────────────────────────────────────────────
 function buildSummary() {
-  const yes = trialResponses.filter(r=>r.heard_tone==='yes').length;
-  const threshLines = Object.entries(thresholds)
-    .map(([f,t]) => `  ${f}: ${t} dB`).join('\n');
+  const threshLines = s1FreqOrder.map(f=>`  ${f}: ${s1Thresholds[f]} dB`).join('\n');
+  const resultLines = s2Results.map(r=>`  ${r.freq} ${r.condition} ${r.delay_ms}ms → ${r.threshold_dB} dB`).join('\n');
   return [
     `=== TEMPORAL MASKING TEST RESULTS ===`,
     `App version:   ${APP_VERSION}`,
@@ -1519,19 +1361,15 @@ function buildSummary() {
     `Hearing:       ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `Device:        ${participant.listenDevice}`,
     `Session start: ${sessionStart}`,
-    `Freq order:    ${freqOrder.join(', ')}`,
-    ``,
-    `THRESHOLDS:`,
-    threshLines,
-    ``,
-    `Stage 2 trials: ${trialResponses.length}`,
-    `Heard tone:     ${yes} (${Math.round(yes/trialResponses.length*100)}%)`,
-    `Did not hear:   ${trialResponses.length - yes}`,
+    `Freq order:    ${s1FreqOrder.join(', ')}`,
+    `Block order:   ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
+    ``,`STAGE 1 THRESHOLDS:`,threshLines,
+    ``,`STAGE 2 THRESHOLDS PER DELAY:`,resultLines,
   ].join('\n');
 }
 
 function buildCSV() {
-  const metaLines = [
+  const lines=[
     `# Temporal Masking Test — Results`,
     `# App version: ${APP_VERSION}`,
     `# Participant: ${participant.name}`,
@@ -1539,91 +1377,138 @@ function buildCSV() {
     `# Gender: ${participant.gender}`,
     `# Training: ${participant.training}`,
     `# Experience: ${participant.experience}`,
-    `# Hearing status: ${participant.hearingStatus}`,
-    `# Hearing notes: ${participant.hearingNotes}`,
-    `# Listening device: ${participant.listenDevice}`,
+    `# Hearing: ${participant.hearingStatus} — ${participant.hearingNotes}`,
+    `# Device: ${participant.listenDevice}`,
     `# Session start: ${sessionStart}`,
-    `# Frequency order: ${freqOrder.join(', ')}`,
+    `# Freq order: ${s1FreqOrder.join(', ')}`,
+    `# Block order: ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
     `#`,
-    `# THRESHOLDS`,
+    `# STAGE 1 THRESHOLDS`,
   ];
-  Object.entries(thresholds).forEach(([f,t]) => metaLines.push(`# ${f}: ${t} dB`));
-  metaLines.push('#');
-  metaLines.push('# STAIRCASE LOG');
-  metaLines.push('# freq,cal_trial,level_dB,heard,reversal');
-  staircaseLog.forEach(r => {
-    metaLines.push(`# ${r.freq},${r.trial},${r.level},${r.heard},${r.reversal}`);
+  s1FreqOrder.forEach(f=>lines.push(`# ${f}: ${s1Thresholds[f]} dB`));
+  lines.push('#',`# STAGE 1 STAIRCASE LOG`);
+  lines.push(`# freq,trial,level_dB,heard,reversal`);
+  s1StaircaseLog.forEach(r=>lines.push(`# ${r.freq},${r.trial},${r.level},${r.heard},${r.reversal}${r.note?','+r.note:''}`));
+  lines.push('#',`# STAGE 2 RESULTS`);
+  lines.push(`freq,condition,delay_ms,threshold_dB,s2_trial,s2_level_dB,s2_heard,s2_reversal`);
+  s2Results.forEach(r=>{
+    r.trials.forEach(t=>{
+      lines.push([r.freq,r.condition,r.delay_ms,r.threshold_dB,t.trial,t.level,t.heard,t.reversal].join(','));
+    });
   });
-  metaLines.push('#');
-  metaLines.push('# STAGE 2 RESULTS');
-  metaLines.push('trial,filename,condition,delay_ms,frequency,level_dB,heard_tone,timestamp');
-
-  const rows = trialResponses.map(r =>
-    [r.trial,`"${r.filename}"`,r.condition,r.delay_ms,r.frequency,r.level_dB,r.heard_tone,r.timestamp].join(',')
-  );
-  return [...metaLines, ...rows].join('\n');
+  return lines.join('\n');
 }
 
-// ── Downloads ──────────────────────────────────────────────────────
-function dlCSV() {
-  dlFile(buildCSV(), `masking_${san(participant.name)}_${ds()}.csv`, 'text/csv');
-}
-function dlJSON() {
+function dlCSV(){ dlFile(buildCSV(),`masking_${san(participant.name)}_${ds()}.csv`,'text/csv'); }
+function dlJSON(){
   dlFile(JSON.stringify({
-    participant, sessionStart, freqOrder, thresholds,
-    staircaseLog, stage2Trials: trialResponses
-  }, null, 2), `masking_${san(participant.name)}_${ds()}.json`, 'application/json');
+    appVersion:APP_VERSION, participant, sessionStart,
+    s1FreqOrder, s1Thresholds, s1StaircaseLog,
+    s2BlockOrder:s2Blocks.map(b=>({freq:b.freq,condition:b.condition})),
+    s2Results
+  },null,2),`masking_${san(participant.name)}_${ds()}.json`,'application/json');
 }
-function dlFile(content, name, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content],{type}));
-  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+function dlFile(content,name,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
 }
-const ds  = () => new Date().toISOString().replace(/[T:\.Z]/g,'').slice(0,15);
-const san = s  => (s||'participant').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_-]/g,'');
+const ds  = ()=>new Date().toISOString().replace(/[T:\.Z]/g,'').slice(0,15);
+const san = s=>(s||'p').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_-]/g,'');
 
-// ── Reset ──────────────────────────────────────────────────────────
-function resetToParticipant() {
-  participant={}; freqIndex=0; thresholds={}; calHistory=[];
-  staircaseLog=[]; stage2Files=[]; trialOrder=[]; currentTrial=0; trialResponses=[];
-  ['pName','pAge','pHearingNotes'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('pExperience').value='';
-  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
-  showScreen('s-participant');
+// ══════════════════════════════════════════════════════════════════
+// VISUAL HELPERS
+// ══════════════════════════════════════════════════════════════════
+function setCalEnabled(on){document.getElementById('calBtnYes').disabled=!on;document.getElementById('calBtnNo').disabled=!on}
+function setCalStatus(t){document.getElementById('calStatusTxt').textContent=t}
+function setCalPlaying(on){document.getElementById('calWaveform').classList.toggle('active',on);document.getElementById('calPlayBtn').classList.toggle('playing',on)}
+function setTrialEnabled(on){document.getElementById('trialBtnYes').disabled=!on;document.getElementById('trialBtnNo').disabled=!on}
+function setTrialStatus(t){document.getElementById('trialStatusTxt').textContent=t}
+function setTrialPlaying(on){document.getElementById('trialWaveform').classList.toggle('active',on);document.getElementById('trialPlayBtn').classList.toggle('playing',on)}
+function setPlayingVisual(isCal,on){isCal?setCalPlaying(on):setTrialPlaying(on)}
+
+function addCalDot(heard, level, minL, maxL) {
+  const c=document.getElementById('staircaseDots');
+  const h=Math.max(4,Math.round(((level-minL)/(maxL-minL))*48));
+  const d=document.createElement('div');
+  d.className=`sdot ${heard?'yes':'no'}`;d.style.height=h+'px';
+  d.title=`${level}dB — ${heard?'heard':'not heard'}`;c.appendChild(d);c.scrollLeft=c.scrollWidth;
 }
 
-// ── Utilities ──────────────────────────────────────────────────────
-function shuffle(arr) {
+function addMiniDot(heard, level, availLevels) {
+  const c=document.getElementById('miniStaircaseDots');
+  const minL=availLevels[0]||0, maxL=availLevels[availLevels.length-1]||50;
+  const h=maxL>minL?Math.max(4,Math.round(((level-minL)/(maxL-minL))*48)):24;
+  const d=document.createElement('div');
+  d.className=`sdot ${heard?'yes':'no'}`;d.style.height=h+'px';
+  d.title=`${level}dB — ${heard?'heard':'not heard'}`;c.appendChild(d);c.scrollLeft=c.scrollWidth;
+}
+
+function renderThreshCards(containerId, freqs, threshObj) {
+  const el=document.getElementById(containerId); if(!el) return;
+  el.innerHTML=freqs.map(freq=>{
+    const t=threshObj[freq];
+    return `<div class="thresh-card">
+      <span class="freq-tag">${freq}</span>
+      <div><div class="tval">${t!==undefined?t+' dB':'—'}</div>
+      <div class="tdesc">Detection threshold</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════════════
+function computeThresh(revLevels, nForThresh, currentLevel) {
+  if (!revLevels.length) return currentLevel;
+  const use=revLevels.slice(-nForThresh);
+  return Math.round(use.reduce((a,b)=>a+b,0)/use.length);
+}
+
+function clampToAvail(target, avail) {
+  if (!avail.length) return target;
+  return avail.reduce((p,c)=>Math.abs(c-target)<Math.abs(p-target)?c:p);
+}
+
+function shuffle(arr){
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a;
 }
-function radioVal(name) {
-  const el=document.querySelector(`input[name="${name}"]:checked`);return el?el.value:'';
-}
-function showScreen(id) {
+function normaliseFreq(f){return (f||'').toLowerCase().replace(/\s/g,'')}
+function radioVal(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?el.value:''}
+function capitalise(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function normaliseFreq(f) {
-  return f.toLowerCase().replace(/\s/g,'');
-}
 function showErr(id,msg){document.getElementById(id).textContent=msg}
 function clearErr(id){document.getElementById(id).textContent=''}
 
+function resetToParticipant() {
+  participant={}; s1FreqOrder=[]; s1FreqIndex=0; s1Thresholds={}; s1StaircaseLog=[];
+  s2Blocks=[]; s2BlockIndex=0; s2Results=[];
+  ['pName','pAge','pHearingNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pExperience').value='';
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById('s1preambleNext').disabled=true;
+  document.getElementById('s2preambleNext').disabled=true;
+  showScreen('s-participant');
+}
+
 // ── Keyboard shortcuts ─────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  const active = document.querySelector('.screen.active')?.id;
-  if (active === 's-calibration') {
-    if (e.code==='Space')  { e.preventDefault(); playCalStimulus(); }
-    if (e.code==='KeyY' && !document.getElementById('calBtnYes').disabled) calResponse(true);
-    if (e.code==='KeyN' && !document.getElementById('calBtnNo').disabled)  calResponse(false);
+document.addEventListener('keydown',e=>{
+  const active=document.querySelector('.screen.active')?.id;
+  if (active==='s-calibration') {
+    if(e.code==='Space'){e.preventDefault();playCalStimulus()}
+    if(e.code==='KeyY'&&!document.getElementById('calBtnYes').disabled) calResponse(true);
+    if(e.code==='KeyN'&&!document.getElementById('calBtnNo').disabled)  calResponse(false);
   }
-  if (active === 's-trial') {
-    if (e.code==='Space')  { e.preventDefault(); playTrialStimulus(); }
-    if (e.code==='KeyY' && !document.getElementById('trialBtnYes').disabled) trialResponse(true);
-    if (e.code==='KeyN' && !document.getElementById('trialBtnNo').disabled)  trialResponse(false);
+  if (active==='s-trial') {
+    if(e.code==='Space'){e.preventDefault();playTrialStimulus()}
+    if(e.code==='KeyY'&&!document.getElementById('trialBtnYes').disabled) trialResponse(true);
+    if(e.code==='KeyN'&&!document.getElementById('trialBtnNo').disabled)  trialResponse(false);
   }
 });
 </script>
