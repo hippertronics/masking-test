@@ -37,7 +37,7 @@
     "conditions":       ["forward", "backward"],
     "level_step":       5,
     "min_level":        0,
-    "max_level":        50,
+    "max_level":        80,
     "masker_level":     80,
     "calibration_tag":  "simultaneous",
     "filename_pattern": "{condition}_{delay}_{frequency}_{level}dB.wav"
