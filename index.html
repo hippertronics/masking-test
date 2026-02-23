@@ -332,21 +332,12 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
       <input type="radio" name="gender" id="g4" value="Prefer not to say"><label for="g4">Prefer not to say</label>
     </div>
   </div>
-  <div class="field"><label class="lbl">Musical / audio training</label>
+  <div class="field"><label class="lbl">Audio / Musical training and experience</label>
     <div class="radio-group">
       <input type="radio" name="training" id="t1" value="None"><label for="t1">None</label>
-      <input type="radio" name="training" id="t2" value="Amateur"><label for="t2">Amateur</label>
-      <input type="radio" name="training" id="t3" value="Semi-professional"><label for="t3">Semi-professional</label>
-      <input type="radio" name="training" id="t4" value="Professional"><label for="t4">Professional</label>
+      <input type="radio" name="training" id="t2" value="Audio or Music enthusiast"><label for="t2">Audio or Music enthusiast</label>
+      <input type="radio" name="training" id="t3" value="Audio or Music professional"><label for="t3">Audio or Music professional</label>
     </div>
-  </div>
-  <div class="field"><label class="lbl">Years of listening / musical experience</label>
-    <select id="pExperience">
-      <option value="" disabled selected>— select —</option>
-      <option>0 – 2 years</option><option>3 – 5 years</option>
-      <option>6 – 10 years</option><option>11 – 20 years</option>
-      <option>More than 20 years</option>
-    </select>
   </div>
   <div class="field"><label class="lbl">Known hearing impairments?</label>
     <div class="radio-group">
@@ -425,7 +416,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <div class="viz-label">Response history</div>
     <div class="staircase-dots" id="staircaseDots"></div>
     <div class="level-display">
-      <div><span class="lval" id="calLevelDisplay">—</span><span class="lunit"> dB</span></div>
+      <div><span class="lval" id="calLevelDisplay" style="display:none">—</span><span class="lunit" style="display:none"> dB</span></div>
       <div class="rev-count">Reversals: <span id="calRevCount">0</span> / <span id="calRevTarget">—</span></div>
     </div>
   </div>
@@ -506,31 +497,26 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <!-- Block overview pips -->
   <div class="block-overview" id="blockOverview"></div>
 
-  <!-- Current block header -->
-  <div class="freq-block-header">
-    <div class="freq-pill" id="trialFreqPill">—</div>
-    <div>
-      <div style="font-size:.72rem;color:var(--text);margin-bottom:.2rem" id="trialCondLabel">—</div>
-      <div style="font-size:.65rem;color:var(--text)" id="trialDelayLabel">—</div>
-    </div>
-  </div>
-
   <!-- Mini-staircase viz -->
   <div class="staircase-viz">
-    <div class="viz-label">Response history — this delay</div>
+    <div class="viz-label">Response history</div>
     <div class="staircase-dots" id="miniStaircaseDots"></div>
     <div class="level-display">
-      <div><span class="lval" id="miniLevelDisplay">—</span><span class="lunit"> dB</span></div>
+      <div><span class="lval" id="miniLevelDisplay" style="display:none">—</span><span class="lunit" style="display:none"> dB</span></div>
       <div class="rev-count">Reversals: <span id="miniRevCount">0</span> / <span id="miniRevTarget">—</span></div>
     </div>
   </div>
 
-  <!-- Debug tags (remove for production) -->
-  <div class="debug-tags">
-    <span class="dtag" id="dbgFreq">—</span>
-    <span class="dtag" id="dbgCond">—</span>
-    <span class="dtag" id="dbgDelay">—</span>
-    <span class="dtag highlight" id="dbgLevel">—</span>
+  <!-- Debug tags hidden — retained for JS references -->
+  <div style="display:none">
+    <span id="trialFreqPill">—</span>
+    <span id="trialBadgeText">—</span>
+    <span id="trialCondLabel">—</span>
+    <span id="trialDelayLabel">—</span>
+    <span id="dbgFreq">—</span>
+    <span id="dbgCond">—</span>
+    <span id="dbgDelay">—</span>
+    <span id="dbgLevel">—</span>
   </div>
 
   <div class="player">
@@ -603,7 +589,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
@@ -843,7 +829,6 @@ function participantNext() {
     name, age:+age,
     gender:       radioVal('gender')  ||'Not stated',
     training:     radioVal('training')||'Not stated',
-    experience:   document.getElementById('pExperience').value||'Not stated',
     hearingStatus:radioVal('hearing') ||'Not stated',
     hearingNotes: document.getElementById('pHearingNotes').value.trim()||'—',
     listenDevice: radioVal('device')  ||'Not stated',
@@ -1361,7 +1346,6 @@ function buildSummary() {
     `Age:           ${participant.age}`,
     `Gender:        ${participant.gender}`,
     `Training:      ${participant.training}`,
-    `Experience:    ${participant.experience}`,
     `Hearing:       ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `Device:        ${participant.listenDevice}`,
     `Session start: ${sessionStart}`,
@@ -1380,7 +1364,6 @@ function buildCSV() {
     `# Age: ${participant.age}`,
     `# Gender: ${participant.gender}`,
     `# Training: ${participant.training}`,
-    `# Experience: ${participant.experience}`,
     `# Hearing: ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `# Device: ${participant.listenDevice}`,
     `# Session start: ${sessionStart}`,
@@ -1433,19 +1416,16 @@ function setPlayingVisual(isCal,on){isCal?setCalPlaying(on):setTrialPlaying(on)}
 
 function addCalDot(heard, level, minL, maxL) {
   const c=document.getElementById('staircaseDots');
-  const h=Math.max(4,Math.round(((level-minL)/(maxL-minL))*48));
   const d=document.createElement('div');
-  d.className=`sdot ${heard?'yes':'no'}`;d.style.height=h+'px';
-  d.title=`${level}dB — ${heard?'heard':'not heard'}`;c.appendChild(d);c.scrollLeft=c.scrollWidth;
+  d.className=`sdot ${heard?'yes':'no'}`;d.style.height='28px';
+  c.appendChild(d);c.scrollLeft=c.scrollWidth;
 }
 
 function addMiniDot(heard, level, availLevels) {
   const c=document.getElementById('miniStaircaseDots');
-  const minL=availLevels[0]||0, maxL=availLevels[availLevels.length-1]||50;
-  const h=maxL>minL?Math.max(4,Math.round(((level-minL)/(maxL-minL))*48)):24;
   const d=document.createElement('div');
-  d.className=`sdot ${heard?'yes':'no'}`;d.style.height=h+'px';
-  d.title=`${level}dB — ${heard?'heard':'not heard'}`;c.appendChild(d);c.scrollLeft=c.scrollWidth;
+  d.className=`sdot ${heard?'yes':'no'}`;d.style.height='28px';
+  c.appendChild(d);c.scrollLeft=c.scrollWidth;
 }
 
 function renderThreshCards(containerId, freqs, threshObj) {
@@ -1494,7 +1474,6 @@ function resetToParticipant() {
   participant={}; s1FreqOrder=[]; s1FreqIndex=0; s1Thresholds={}; s1StaircaseLog=[];
   s2Blocks=[]; s2BlockIndex=0; s2Results=[];
   ['pName','pAge','pHearingNotes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('pExperience').value='';
   document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
   document.getElementById('s1preambleNext').disabled=true;
   document.getElementById('s2preambleNext').disabled=true;
