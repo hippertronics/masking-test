@@ -1304,7 +1304,8 @@ async function sendEmail() {
 
 function buildSummary() {
   const threshLines = s1FreqOrder.map(f=>`  ${f}: ${s1Thresholds[f]} dB`).join('\n');
-  const resultLines = s2Results.map(r=>`  ${r.freq} ${r.condition} ${r.delay_ms}ms → ${r.threshold_dB} dB`).join('\n');
+  // Comma-separated for easy extraction: freq,condition,delay_ms,threshold_dB
+  const resultLines = s2Results.map(r=>`  ${r.freq},${r.condition},${r.delay_ms},${r.threshold_dB}`).join('\n');
   return [
     `=== TEMPORAL MASKING TEST RESULTS ===`,
     `App version:   ${APP_VERSION}`,
@@ -1318,7 +1319,7 @@ function buildSummary() {
     `Freq order:    ${s1FreqOrder.join(', ')}`,
     `Block order:   ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
     ``,`STAGE 1 THRESHOLDS:`,threshLines,
-    ``,`STAGE 2 THRESHOLDS PER DELAY:`,resultLines,
+    ``,`STAGE 2 THRESHOLDS PER DELAY (freq,condition,delay_ms,threshold_dB):`,resultLines,
   ].join('\n');
 }
 
@@ -1339,10 +1340,23 @@ function buildCSV() {
     `# STAGE 1 THRESHOLDS`,
   ];
   s1FreqOrder.forEach(f=>lines.push(`# ${f}: ${s1Thresholds[f]} dB`));
-  lines.push('#',`# STAGE 1 STAIRCASE LOG`);
+  lines.push('#');
+  lines.push(`# STAGE 1 STAIRCASE LOG`);
+  lines.push(`# Columns: freq, trial, level_dB, heard (true=tone heard / false=not heard), reversal (true=staircase direction changed)`);
   lines.push(`# freq,trial,level_dB,heard,reversal`);
   s1StaircaseLog.forEach(r=>lines.push(`# ${r.freq},${r.trial},${r.level},${r.heard},${r.reversal}${r.note?','+r.note:''}`));
-  lines.push('#',`# STAGE 2 RESULTS`);
+  lines.push('#');
+  lines.push(`# STAGE 2 RESULTS`);
+  lines.push(`# One row per individual trial within each mini-staircase.`);
+  lines.push(`# Columns:`);
+  lines.push(`#   freq          - test frequency (e.g. 1kHz)`);
+  lines.push(`#   condition     - masking type: forward or backward`);
+  lines.push(`#   delay_ms      - masker-probe delay in milliseconds`);
+  lines.push(`#   threshold_dB  - estimated detection threshold for this delay condition (mean of last ${CFG.staircase_s2.reversals_for_threshold} reversals)`);
+  lines.push(`#   s2_trial      - trial number within this mini-staircase (resets to 1 for each new delay)`);
+  lines.push(`#   s2_level_dB   - probe level presented on this trial`);
+  lines.push(`#   s2_heard      - participant response: true=heard tone / false=did not hear tone`);
+  lines.push(`#   s2_reversal   - true if this trial caused a staircase direction reversal, false otherwise`);
   lines.push(`freq,condition,delay_ms,threshold_dB,s2_trial,s2_level_dB,s2_heard,s2_reversal`);
   s2Results.forEach(r=>{
     r.trials.forEach(t=>{
