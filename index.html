@@ -265,7 +265,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <body>
 <div class="wrap">
   <div class="wordmark">
-    <div class="lab">Psychoacoustics Laboratory</div>
+    <div class="lab">Paul Morgan · p.d.morgan@edu.salford.ac.uk</div>
     <h1>Temporal <em>Masking</em> Test</h1>
     <div class="sub">Adaptive threshold · Forward &amp; backward masking</div>
     <div class="ver">v<span id="versionDisplay">—</span></div>
@@ -274,43 +274,31 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <div class="card">
 
 <!-- ══════════════════════════════════════
-     S1 — RESEARCHER SETUP
+     RESEARCHER DIAGNOSTIC (hidden — access via ?setup in URL)
 ═══════════════════════════════════════ -->
-<div id="s-setup" class="screen active">
-  <div class="sh"><span class="tag">Researcher</span><h2>Session Setup</h2></div>
+<div id="s-setup" class="screen" style="display:none">
+  <div class="sh"><span class="tag">Researcher</span><h2>Diagnostic Panel</h2></div>
   <div id="configStatus" class="config-status"><div class="spinner"></div> Loading config.json…</div>
   <div class="note" style="margin-bottom:1.35rem">
-    Settings are loaded from <code>config.json</code>. EmailJS credentials entered below
-    override config and are saved in the browser. See the README for setup instructions.
+    This panel is not shown to participants. Access via <code>?setup</code> in the URL.
+    Settings are loaded automatically from <code>config.json</code>.
   </div>
-  <div class="grid2">
-    <div class="field"><label class="lbl">EmailJS Public Key</label><input type="text" id="ejsKey" placeholder="user_…" autocomplete="off"></div>
-    <div class="field"><label class="lbl">Service ID</label><input type="text" id="ejsService" placeholder="service_…" autocomplete="off"></div>
-    <div class="field"><label class="lbl">Template ID</label><input type="text" id="ejsTemplate" placeholder="template_…" autocomplete="off"></div>
-    <div class="field"><label class="lbl">Your email address</label><input type="email" id="researcherEmail" placeholder="you@university.ac.uk" autocomplete="off"></div>
-  </div>
-  <div class="divider"></div>
-  <div class="sh" style="margin-bottom:1rem"><span class="tag">Stimuli</span><h2>Audio Files</h2></div>
-  <div class="tabs">
-    <div class="tab active" id="tab-upload" onclick="switchTab('upload')">↑ Upload files</div>
-    <div class="tab" id="tab-url" onclick="switchTab('url')">⊞ Use stimuli/ folder</div>
-  </div>
-  <div class="tab-panel active" id="panel-upload">
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept="audio/*" multiple>
-      <div class="icon">⬆</div>
-      <div class="hint">Click or drag & drop all WAV / MP3 files at once</div>
-    </div>
-    <div class="file-list" id="fileList"></div>
-  </div>
-  <div class="tab-panel" id="panel-url">
-    <div class="note" style="margin-bottom:.85rem">Generates file list from <code>config.json</code> parameters. Click Generate, check count, then proceed.</div>
-    <button class="btn btn-ghost" onclick="generateUrlList()" style="margin-bottom:.75rem;width:100%">⟳ Generate file list from config</button>
-    <textarea id="urlList" placeholder="Click Generate above, or paste paths manually…" style="min-height:120px;font-size:.65rem"></textarea>
-    <div style="font-size:.63rem;color:var(--muted);margin-top:.4rem" id="urlCount"></div>
-  </div>
-  <div class="err-msg" id="setupErr"></div>
-  <button class="btn btn-primary" onclick="setupNext()">Save &amp; hand to participant →</button>
+  <div id="diagOutput" style="font-size:.7rem;color:var(--text);line-height:1.9;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:1rem;margin-bottom:1rem"></div>
+  <button class="btn btn-primary" onclick="showScreen('s-participant')">← Back to test</button>
+</div>
+
+<!-- Hidden fields kept for JS compatibility -->
+<div style="display:none">
+  <input type="text" id="ejsKey">
+  <input type="text" id="ejsService">
+  <input type="text" id="ejsTemplate">
+  <input type="email" id="researcherEmail">
+  <input type="file" id="fileInput" accept="audio/*" multiple>
+  <div id="uploadZone"></div>
+  <div id="fileList"></div>
+  <textarea id="urlList"></textarea>
+  <div id="urlCount"></div>
+  <div id="setupErr"></div>
 </div>
 
 
@@ -589,7 +577,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
@@ -602,8 +590,6 @@ let sessionStart = '';
 
 // ── All loaded stimuli ─────────────────────────────────────────────
 let allFiles  = [];
-let audioMode = 'upload';
-
 // ── Stage 1 state ──────────────────────────────────────────────────
 let s1FreqOrder   = [];   // shuffled frequencies
 let s1FreqIndex   = 0;
@@ -651,31 +637,119 @@ let s1preamblePlayed = false;
 let s2preamblePlayed = false;
 
 // ══════════════════════════════════════════════════════════════════
-// CONFIG LOAD
+// CONFIG LOAD — auto-initialises on page load, no setup screen needed
+// Access researcher diagnostics via ?setup in the URL
 // ══════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', loadConfig);
 
 async function loadConfig() {
-  const el = document.getElementById('configStatus');
+  const diagMode = new URLSearchParams(window.location.search).has('setup');
+
   try {
     const r = await fetch('config.json');
-    if (!r.ok) throw new Error('Not found');
+    if (!r.ok) throw new Error('config.json not found (HTTP ' + r.status + ')');
     CFG = await r.json();
-    el.className = 'config-status ok';
-    el.textContent = '✓ config.json loaded';
-    prefill('ejsKey',          CFG.researcher?.emailjs_key,      'ejs_key');
-    prefill('ejsService',      CFG.researcher?.emailjs_service,  'ejs_svc');
-    prefill('ejsTemplate',     CFG.researcher?.emailjs_template, 'ejs_tmpl');
-    prefill('researcherEmail', CFG.researcher?.researcher_email, 'ejs_email');
+
+    // Pull EmailJS settings from config
+    EJS_KEY          = CFG.researcher?.emailjs_key      || '';
+    EJS_SERVICE      = CFG.researcher?.emailjs_service  || '';
+    EJS_TEMPLATE     = CFG.researcher?.emailjs_template || '';
+    RESEARCHER_EMAIL = CFG.researcher?.researcher_email || '';
+
+    if (EJS_KEY) emailjs.init({publicKey: EJS_KEY});
+
+    // Auto-generate file list from config
+    autoGenerateFileList();
+
+    const cfgEl = document.getElementById('configStatus');
+    cfgEl.className = 'config-status ok';
+    cfgEl.textContent = '✓ config.json loaded';
+
+    if (diagMode) {
+      showDiagnostics('✓ config.json loaded successfully');
+      showScreen('s-setup');
+    } else {
+      showScreen('s-participant');
+    }
+
   } catch(e) {
     CFG = defaultCFG();
-    el.className = 'config-status err';
-    el.textContent = '⚠ config.json not found — using defaults';
-    prefill('ejsKey',null,'ejs_key'); prefill('ejsService',null,'ejs_svc');
-    prefill('ejsTemplate',null,'ejs_tmpl'); prefill('researcherEmail',null,'ejs_email');
+    const cfgEl = document.getElementById('configStatus');
+    cfgEl.className = 'config-status err';
+    cfgEl.textContent = '⚠ ' + e.message;
+
+    if (diagMode) {
+      showDiagnostics('⚠ ' + e.message);
+      showScreen('s-setup');
+    } else {
+      // Still proceed — use defaults, email will silently fail
+      autoGenerateFileList();
+      showScreen('s-participant');
+    }
   }
-  document.getElementById('calRevTarget').textContent = CFG.staircase_s1.reversals_total;
+
+  document.getElementById('calRevTarget').textContent  = CFG.staircase_s1.reversals_total;
   document.getElementById('miniRevTarget').textContent = CFG.staircase_s2.reversals_total;
+}
+
+function autoGenerateFileList() {
+  // Builds allFiles from config parameters — same logic as generateUrlList
+  // but stores directly into allFiles rather than a textarea
+  const s      = CFG.stimuli;
+  const path   = s.path   || 'stimuli/';
+  const freqs  = s.frequencies  || ['1kHz','2kHz'];
+  const delays = s.delays_ms    || [0,5,10,15,20,25,30,35,40,45,50];
+  const conds  = s.conditions   || ['forward','backward'];
+  const minL   = s.min_level    != null ? s.min_level : 0;
+  const maxL   = s.max_level    != null ? s.max_level : 50;
+  const step   = s.level_step   || 5;
+  const calTag = s.calibration_tag || 'simultaneous';
+  const levels = [];
+  for (let l = minL; l <= maxL; l += step) levels.push(l);
+
+  allFiles = [];
+  freqs.forEach(freq => {
+    // Calibration files (simultaneous, 0ms)
+    levels.forEach(lvl => {
+      const name = `${calTag}_0ms_${freq}_${lvl}dB.wav`;
+      const url  = path + name;
+      allFiles.push({name, parsed:parseFilename(name), isFile:false, url});
+    });
+    // Stage 2 files
+    conds.forEach(cond => {
+      delays.forEach(d => {
+        levels.forEach(lvl => {
+          const name = `${cond}_${d}ms_${freq}_${lvl}dB.wav`;
+          const url  = path + name;
+          allFiles.push({name, parsed:parseFilename(name), isFile:false, url});
+        });
+      });
+    });
+  });
+  // Remove any that failed to parse (shouldn't happen with generated names)
+  allFiles = allFiles.filter(f => f.parsed !== null);
+}
+
+function showDiagnostics(configMsg) {
+  const s      = CFG.stimuli;
+  const calTag = s.calibration_tag || 'simultaneous';
+  const calCount = allFiles.filter(f=>f.parsed?.condition===calTag).length;
+  const s2Count  = allFiles.filter(f=>f.parsed?.condition!==calTag).length;
+  document.getElementById('diagOutput').innerHTML = [
+    `<strong>Config status:</strong> ${configMsg}`,
+    `<strong>EmailJS key:</strong> ${EJS_KEY ? EJS_KEY.slice(0,8)+'…' : '⚠ missing'}`,
+    `<strong>EmailJS service:</strong> ${EJS_SERVICE || '⚠ missing'}`,
+    `<strong>EmailJS template:</strong> ${EJS_TEMPLATE || '⚠ missing'}`,
+    `<strong>Researcher email:</strong> ${RESEARCHER_EMAIL || '⚠ missing'}`,
+    `<strong>Stimuli path:</strong> ${s.path}`,
+    `<strong>Frequencies:</strong> ${(s.frequencies||[]).join(', ')}`,
+    `<strong>Delays (ms):</strong> ${(s.delays_ms||[]).join(', ')}`,
+    `<strong>Conditions:</strong> ${(s.conditions||[]).join(', ')}`,
+    `<strong>Level range:</strong> ${s.min_level}–${s.max_level} dB in ${s.level_step} dB steps`,
+    `<strong>Calibration files generated:</strong> ${calCount}`,
+    `<strong>Stage 2 files generated:</strong> ${s2Count}`,
+    `<strong>Total files in list:</strong> ${allFiles.length}`,
+  ].join('<br>');
 }
 
 function defaultCFG() {
@@ -690,81 +764,6 @@ function defaultCFG() {
       min_level:0, max_level:50, masker_level:80,
       calibration_tag:'simultaneous' }
   };
-}
-
-function prefill(id, cfgVal, lsKey) {
-  const v = tryLS(lsKey) || cfgVal || '';
-  if (v) document.getElementById(id).value = v;
-}
-function tryLS(k, v) {
-  try { if(v!==undefined){localStorage.setItem(k,v);return;} return localStorage.getItem(k)||''; } catch(e){return '';}
-}
-
-// ══════════════════════════════════════════════════════════════════
-// FILE LOADING
-// ══════════════════════════════════════════════════════════════════
-function switchTab(mode) {
-  audioMode = mode;
-  ['upload','url'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===mode);
-    document.getElementById('panel-'+t).classList.toggle('active',t===mode);
-  });
-}
-
-const fileInput = document.getElementById('fileInput');
-const uploadZone = document.getElementById('uploadZone');
-fileInput.addEventListener('change', ()=>ingestFiles(fileInput.files));
-uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('over')});
-uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('over'));
-uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('over');ingestFiles(e.dataTransfer.files)});
-
-function ingestFiles(fList) {
-  const audio = Array.from(fList).filter(f=>f.type.startsWith('audio/')||/\.(wav|mp3|ogg|flac)$/i.test(f.name));
-  if (!audio.length) { showErr('setupErr','No audio files found.'); return; }
-  clearErr('setupErr');
-  allFiles = audio.map(f=>({name:f.name,parsed:parseFilename(f.name),isFile:true,fileObj:f})).filter(f=>f.parsed);
-  const skip = audio.length - allFiles.length;
-  renderFileList();
-  if (skip) showErr('setupErr',`⚠ ${skip} file(s) skipped — check naming convention`);
-}
-
-function renderFileList() {
-  const el = document.getElementById('fileList');
-  el.innerHTML = '';
-  allFiles.forEach(f=>{
-    const c=document.createElement('div'); c.className='file-chip';
-    c.innerHTML=`<span class="dot"></span><span>${f.name}</span>`; el.appendChild(c);
-  });
-}
-
-function generateUrlList() {
-  if (!CFG) return;
-  const s = CFG.stimuli;
-  const path   = s.path||'stimuli/';
-  const freqs  = s.frequencies||['1kHz','2kHz'];
-  const delays = s.delays_ms||[0,5,10,15,20,25,30,35,40,45,50];
-  const conds  = s.conditions||['forward','backward'];
-  const minL   = s.min_level||0;
-  const maxL   = s.max_level||50;
-  const step   = s.level_step||5;
-  const calTag = s.calibration_tag||'simultaneous';
-  const levels = [];
-  for(let l=minL;l<=maxL;l+=step) levels.push(l);
-  const lines = [];
-  freqs.forEach(freq=>{
-    levels.forEach(lvl=>lines.push(`${path}${calTag}_0ms_${freq}_${lvl}dB.wav`));
-    conds.forEach(cond=>delays.forEach(d=>levels.forEach(lvl=>lines.push(`${path}${cond}_${d}ms_${freq}_${lvl}dB.wav`))));
-  });
-  document.getElementById('urlList').value = lines.join('\n');
-  document.getElementById('urlCount').textContent = `${lines.length} files listed`;
-  clearErr('setupErr');
-}
-
-function parseUrls() {
-  return document.getElementById('urlList').value.trim().split('\n')
-    .map(l=>l.trim()).filter(Boolean)
-    .map(u=>{const name=u.split('/').pop();const parsed=parseFilename(name);return parsed?{name,parsed,isFile:false,url:u}:null})
-    .filter(Boolean);
 }
 
 function parseFilename(name) {
@@ -782,39 +781,6 @@ function parseFilename(name) {
   const delay = parseInt(delayMatch[1]);
   const condition = parts.slice(0,parts.length-3).join('_').toLowerCase();
   return { condition, delay, frequency, level };
-}
-
-// ══════════════════════════════════════════════════════════════════
-// SETUP → PARTICIPANT
-// ══════════════════════════════════════════════════════════════════
-function setupNext() {
-  EJS_KEY          = document.getElementById('ejsKey').value.trim();
-  EJS_SERVICE      = document.getElementById('ejsService').value.trim();
-  EJS_TEMPLATE     = document.getElementById('ejsTemplate').value.trim();
-  RESEARCHER_EMAIL = document.getElementById('researcherEmail').value.trim();
-  if (!EJS_KEY||!EJS_SERVICE||!EJS_TEMPLATE||!RESEARCHER_EMAIL) {
-    showErr('setupErr','Please complete all four EmailJS fields.'); return;
-  }
-  tryLS('ejs_key',EJS_KEY); tryLS('ejs_svc',EJS_SERVICE);
-  tryLS('ejs_tmpl',EJS_TEMPLATE); tryLS('ejs_email',RESEARCHER_EMAIL);
-  emailjs.init({publicKey:EJS_KEY});
-
-  if (audioMode==='upload') {
-    if (!allFiles.length) { showErr('setupErr','Please add audio files.'); return; }
-  } else {
-    allFiles = parseUrls();
-    if (!allFiles.length) { showErr('setupErr','No valid file paths. Click Generate or enter manually.'); return; }
-    const testUrl = allFiles[0].url;
-    fetch(testUrl,{method:'HEAD'}).then(r=>{
-      if (!r.ok) showErr('setupErr',`⚠ HTTP ${r.status}: ${testUrl}`);
-    }).catch(()=>showErr('setupErr',`⚠ Cannot reach: ${testUrl}`));
-  }
-  const calTag = CFG.stimuli.calibration_tag;
-  if (!allFiles.some(f=>f.parsed.condition===calTag)) {
-    showErr('setupErr',`No calibration files found (condition="${calTag}")`); return;
-  }
-  clearErr('setupErr');
-  showScreen('s-participant');
 }
 
 // ══════════════════════════════════════════════════════════════════
