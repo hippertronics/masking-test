@@ -9,7 +9,7 @@
   "staircase_s1": {
     "comment":                 "Stage 1 — initial threshold finding per frequency",
     "rule":                    "2down1up",
-    "start_level":             50,
+    "start_level":             70,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         8,
@@ -22,12 +22,12 @@
   "staircase_s2": {
     "comment":                 "Stage 2 — mini-staircase per delay/condition/frequency block",
     "rule":                    "1up1down",
-    "start_level_offset":      20,
+    "start_level_offset":      30,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         6,
     "reversals_for_threshold": 4,
-    "max_trials":              30
+    "max_trials":              40
   },
 
   "stimuli": {
