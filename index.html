@@ -372,20 +372,19 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <div id="s-s1preamble" class="screen">
   <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration — Listen First</h2></div>
   <p style="font-size:.75rem;color:var(--text);margin-bottom:1.5rem;line-height:1.7">
-    Please listen to the following introduction before beginning the calibration phase.
-    This will explain what you are going to hear and what you need to do.
+    You may listen to an introduction to the calibration phase below. Press Continue when you are ready.
   </p>
   <div class="preamble-player">
     <div class="preamble-label">Stage 1 introduction</div>
-    <button class="play-btn" id="s1preambleBtn" onclick="playPreamble('stage_1_preamble.wav','s1preambleBtn','s1preambleStatus','s1preamblePlayed')">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <button class="play-btn" id="s1preambleBtn" onclick="togglePreamble('stage_1_preamble.wav','s1preambleBtn','s1preambleStatus')">
+      <svg id="s1preambleIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </button>
     <div class="preamble-status" id="s1preambleStatus">Press play to hear the introduction</div>
   </div>
   <div class="note" style="margin-bottom:1.5rem">
-    After listening you may replay the introduction as many times as you wish before continuing.
+    You may replay the introduction as many times as you wish before continuing.
   </div>
-  <button class="btn btn-primary" id="s1preambleNext" disabled onclick="showScreen('s-instructions')">Continue to calibration →</button>
+  <button class="btn btn-primary" id="s1preambleNext" onclick="stopPreambleAndGo('s-instructions')">Continue to calibration →</button>
 </div>
 
 
@@ -480,8 +479,8 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   </p>
   <div class="preamble-player">
     <div class="preamble-label">Stage 2 introduction</div>
-    <button class="play-btn" id="s2preambleBtn" onclick="playPreamble('stage_2_preamble.wav','s2preambleBtn','s2preambleStatus','s2preamblePlayed')">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <button class="play-btn" id="s2preambleBtn" onclick="togglePreamble('stage_2_preamble.wav','s2preambleBtn','s2preambleStatus')">
+      <svg id="s2preambleIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </button>
     <div class="preamble-status" id="s2preambleStatus">Press play to hear the introduction</div>
   </div>
@@ -490,7 +489,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <div class="ex-btns" id="s2ExampleBtns"></div>
     <div class="ex-status" id="s2ExampleStatus"></div>
   </div>
-  <button class="btn btn-primary" id="s2preambleNext" disabled onclick="beginMainTest()">Begin main test →</button>
+  <button class="btn btn-primary" id="s2preambleNext" onclick="stopPreambleAndGo('beginMainTest')">Begin main test →</button>
 </div>
 
 
@@ -607,7 +606,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
@@ -661,10 +660,6 @@ let msDelayIndex  = 0;
 // ── Audio ──────────────────────────────────────────────────────────
 let audioCtx   = null;
 let currentSrc = null;
-
-// Preamble played flags
-let s1preamblePlayed = false;
-let s2preamblePlayed = false;
 
 // ══════════════════════════════════════════════════════════════════
 // CONFIG LOAD — auto-initialises on page load, no setup screen needed
@@ -920,43 +915,119 @@ function participantNext() {
 // ══════════════════════════════════════════════════════════════════
 // PREAMBLE PLAYBACK (shared for S1 and S2)
 // ══════════════════════════════════════════════════════════════════
-async function playPreamble(filename, btnId, statusId, playedFlag) {
+// Tracks the decoded AudioBuffer for the currently loaded preamble so we can
+// restart without re-fetching. Keyed by filename.
+const preambleBuffers = {};
+let preambleSrc    = null;   // current preamble BufferSource (separate from main currentSrc)
+let preamblePaused = false;  // true when user has paused mid-playback
+let preambleOffset = 0;      // playback position when paused (seconds)
+let preambleStart  = 0;      // audioCtx.currentTime when play began
+let activePreambleBtn    = null;
+let activePreambleIcon   = null;
+let activePreambleStatus = null;
+
+// Play icon path
+const ICON_PLAY  = 'M8 5v14l11-7z';
+const ICON_PAUSE = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
+
+async function togglePreamble(filename, btnId, statusId) {
   const btn    = document.getElementById(btnId);
+  const icon   = document.getElementById(btnId.replace('Btn','Icon'));
   const status = document.getElementById(statusId);
 
-  // Determine which next button to unlock
-  const nextBtnId = btnId === 's1preambleBtn' ? 's1preambleNext' : 's2preambleNext';
-
   if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if (audioCtx.state==='suspended') await audioCtx.resume();
-  if (currentSrc) { try{currentSrc.stop()}catch(e){} currentSrc=null; }
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+  // If this preamble is currently playing — pause it
+  if (preambleSrc && activePreambleBtn === btn) {
+    preambleOffset = audioCtx.currentTime - preambleStart;
+    try { preambleSrc.stop(); } catch(e) {}
+    preambleSrc    = null;
+    preamblePaused = true;
+    btn.classList.remove('playing');
+    if (icon) icon.setAttribute('d', ICON_PLAY);
+    status.textContent = 'Paused — press play to resume';
+    return;
+  }
+
+  // Stop anything else that might be playing (example sounds or other preamble)
+  if (preambleSrc) { try { preambleSrc.stop(); } catch(e){} preambleSrc = null; }
+  if (currentSrc)  { try { currentSrc.stop();  } catch(e){} currentSrc  = null; }
+  document.querySelectorAll('.btn-example').forEach(b => b.classList.remove('playing'));
+  if (activePreambleBtn && activePreambleBtn !== btn) {
+    activePreambleBtn.classList.remove('playing');
+    if (activePreambleIcon) activePreambleIcon.setAttribute('d', ICON_PLAY);
+  }
+
+  activePreambleBtn    = btn;
+  activePreambleIcon   = icon;
+  activePreambleStatus = status;
 
   btn.classList.add('playing');
-  status.textContent = 'Playing…';
+  if (icon) icon.setAttribute('d', ICON_PAUSE);
+  status.textContent = 'Loading…';
 
   try {
-    const resp = await fetch(filename);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} — check ${filename} is in the root folder`);
-    const ab  = await resp.arrayBuffer();
-    const buf = await audioCtx.decodeAudioData(ab);
-    currentSrc = audioCtx.createBufferSource();
-    currentSrc.buffer = buf;
-    currentSrc.connect(audioCtx.destination);
-    currentSrc.onended = () => {
-      btn.classList.remove('playing');
-      status.textContent = 'Done — press Continue when ready, or replay above';
-      document.getElementById(nextBtnId).disabled = false;
-      currentSrc = null;
-      if (playedFlag === 's1preamblePlayed') s1preamblePlayed = true;
-      else s2preamblePlayed = true;
+    // Fetch and decode only if not already cached
+    if (!preambleBuffers[filename]) {
+      const resp = await fetch(filename);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status} — check ${filename} is in the root folder`);
+      preambleBuffers[filename] = await audioCtx.decodeAudioData(await resp.arrayBuffer());
+    }
+    const buf = preambleBuffers[filename];
+
+    // If pausing was for a different file, reset offset
+    if (!preamblePaused || activePreambleBtn !== btn) preambleOffset = 0;
+    preamblePaused = false;
+
+    preambleSrc   = audioCtx.createBufferSource();
+    preambleSrc.buffer = buf;
+    preambleSrc.connect(audioCtx.destination);
+    preambleStart = audioCtx.currentTime - preambleOffset;
+
+    preambleSrc.onended = () => {
+      // onended fires both on natural finish and on .stop() — only treat as
+      // finished if we didn't manually stop (preambleSrc will be null if stopped)
+      if (preambleSrc) {
+        preambleSrc = null;
+        preambleOffset = 0;
+        preamblePaused = false;
+        btn.classList.remove('playing');
+        if (icon) icon.setAttribute('d', ICON_PLAY);
+        status.textContent = 'Done — press Continue when ready, or replay above';
+      }
     };
-    currentSrc.start(0);
+
+    preambleSrc.start(0, preambleOffset);
+    status.textContent = 'Playing…';
+
   } catch(err) {
     btn.classList.remove('playing');
+    if (icon) icon.setAttribute('d', ICON_PLAY);
     status.textContent = '⚠ ' + err.message;
-    // Still unlock next button so test isn't blocked if file is missing
-    document.getElementById(nextBtnId).disabled = false;
+    console.error(err);
   }
+}
+
+function stopPreambleAndGo(target) {
+  // Stop preamble audio cleanly before navigating
+  if (preambleSrc) {
+    preambleSrc.onended = null;  // prevent onended firing after manual stop
+    try { preambleSrc.stop(); } catch(e) {}
+    preambleSrc = null;
+  }
+  preamblePaused = false;
+  preambleOffset = 0;
+  if (activePreambleBtn)  { activePreambleBtn.classList.remove('playing'); }
+  if (activePreambleIcon) { activePreambleIcon.setAttribute('d', ICON_PLAY); }
+
+  // Also stop example sounds
+  if (exampleSrc) { try { exampleSrc.stop(); } catch(e){} exampleSrc = null; }
+  document.querySelectorAll('.btn-example').forEach(b => b.classList.remove('playing'));
+
+  // Navigate — target is either a screen ID or 'beginMainTest'
+  if (target === 'beginMainTest') beginMainTest();
+  else showScreen(target);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -997,9 +1068,8 @@ function backFromTrial() {
   msHasPlayed   = false;
   setTrialPlaying(false);
   setTrialEnabled(false);
-  // Re-lock the Stage 2 continue button so preamble must be replayed
-  document.getElementById('s2preambleNext').disabled = true;
-  document.getElementById('s2preambleStatus').textContent = 'Press play to hear the introduction';
+  // Re-show the Stage 2 preamble screen so participant can review before restarting
+  document.getElementById('s2preambleStatus').textContent = 'Press play to hear the introduction again, or continue directly';
   showScreen('s-s2preamble');
 }
 
@@ -1612,8 +1682,6 @@ function resetToParticipant() {
   s2Blocks=[]; s2BlockIndex=0; s2Results=[];
   ['pName','pAge','pHearingNotes'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
-  document.getElementById('s1preambleNext').disabled=true;
-  document.getElementById('s2preambleNext').disabled=true;
   showScreen('s-participant');
 }
 
