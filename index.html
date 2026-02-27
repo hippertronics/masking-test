@@ -253,7 +253,21 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Preamble player */
+/* Example sound buttons */
+.example-sounds{margin-top:1.5rem;margin-bottom:1.5rem}
+.example-sounds .ex-label{font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.65rem}
+.example-sounds .ex-btns{display:flex;flex-wrap:wrap;gap:.5rem}
+.btn-example{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.55rem 1rem;border-radius:6px;border:1px solid var(--border2);
+  background:var(--surf2);color:var(--text);
+  font-family:var(--fm);font-size:.68rem;letter-spacing:.06em;
+  cursor:pointer;transition:all .15s;
+}
+.btn-example:hover{border-color:var(--accent);color:var(--accent)}
+.btn-example.playing{border-color:var(--accent2);color:var(--accent2);background:rgba(126,184,247,.08)}
+.btn-example svg{width:12px;height:12px;flex-shrink:0}
+.ex-status{font-size:.63rem;color:var(--muted);margin-top:.5rem;min-height:1.1em;letter-spacing:.04em}
 .preamble-player{
   background:var(--surf2);border:1px solid var(--border);border-radius:10px;
   padding:1.5rem;text-align:center;margin-bottom:1.75rem;
@@ -387,6 +401,11 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <li><span class="num">4</span><span>This calibration runs once for each test frequency. You will be told which frequency you are currently being tested on.</span></li>
     <li><span class="num">5</span><span>Trust your first instinct — there are no right or wrong answers.</span></li>
   </ul>
+  <div class="example-sounds" id="s1ExampleSounds">
+    <div class="ex-label">Listen to examples — click to play</div>
+    <div class="ex-btns" id="s1ExampleBtns"></div>
+    <div class="ex-status" id="s1ExampleStatus"></div>
+  </div>
   <button class="btn btn-primary" onclick="beginCalibration()">Begin calibration →</button>
 </div>
 
@@ -429,6 +448,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <button class="btn btn-yes" id="calBtnYes" disabled onclick="calResponse(true)">✓ &nbsp;Yes</button>
   </div>
   <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+  <div style="text-align:center;margin-top:1.25rem">
+    <button class="btn btn-ghost" style="font-size:.65rem;opacity:.7" onclick="backFromCal()">← Back to instructions</button>
+  </div>
 </div>
 
 
@@ -462,6 +484,11 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </button>
     <div class="preamble-status" id="s2preambleStatus">Press play to hear the introduction</div>
+  </div>
+  <div class="example-sounds" id="s2ExampleSounds">
+    <div class="ex-label">Listen to examples — click to play</div>
+    <div class="ex-btns" id="s2ExampleBtns"></div>
+    <div class="ex-status" id="s2ExampleStatus"></div>
   </div>
   <button class="btn btn-primary" id="s2preambleNext" disabled onclick="beginMainTest()">Begin main test →</button>
 </div>
@@ -528,6 +555,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <button class="btn btn-yes" id="trialBtnYes" disabled onclick="trialResponse(true)">✓ &nbsp;Yes</button>
   </div>
   <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
+  <div style="text-align:center;margin-top:1.25rem">
+    <button class="btn btn-ghost" style="font-size:.65rem;opacity:.7" onclick="backFromTrial()">← Back to instructions</button>
+  </div>
 </div>
 
 
@@ -577,7 +607,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.2a';
+const APP_VERSION = '2.4';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
@@ -661,6 +691,9 @@ async function loadConfig() {
     // Auto-generate file list from config
     autoGenerateFileList();
 
+    // Build example sound buttons from config
+    buildExampleButtons();
+
     const cfgEl = document.getElementById('configStatus');
     cfgEl.className = 'config-status ok';
     cfgEl.textContent = '✓ config.json loaded';
@@ -684,6 +717,7 @@ async function loadConfig() {
     } else {
       // Still proceed — use defaults, email will silently fail
       autoGenerateFileList();
+      buildExampleButtons();
       showScreen('s-participant');
     }
   }
@@ -728,6 +762,85 @@ function autoGenerateFileList() {
   });
   // Remove any that failed to parse (shouldn't happen with generated names)
   allFiles = allFiles.filter(f => f.parsed !== null);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EXAMPLE SOUND BUTTONS
+// ══════════════════════════════════════════════════════════════════
+function buildExampleButtons() {
+  const ex = CFG.example_sounds || {};
+  const path = CFG.stimuli.path || 'stimuli/';
+
+  // Stage 1 examples
+  const s1Examples = ex.stage1 || [
+    { label: '1 kHz example', file: 'simultaneous_0ms_1kHz_80dB.wav' },
+    { label: '2 kHz example', file: 'simultaneous_0ms_2kHz_80dB.wav' }
+  ];
+  const s1Container = document.getElementById('s1ExampleBtns');
+  if (s1Container) {
+    s1Container.innerHTML = '';
+    s1Examples.forEach((ex, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-example';
+      btn.id = `s1ex${i}`;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${ex.label}`;
+      btn.onclick = () => playExample(path + ex.file, btn, document.getElementById('s1ExampleStatus'));
+      s1Container.appendChild(btn);
+    });
+  }
+
+  // Stage 2 examples
+  const s2Examples = ex.stage2 || [
+    { label: '1 kHz forward',  file: 'forward_50ms_1kHz_80dB.wav' },
+    { label: '1 kHz backward', file: 'backward_50ms_1kHz_80dB.wav' },
+    { label: '2 kHz forward',  file: 'forward_50ms_2kHz_80dB.wav' },
+    { label: '2 kHz backward', file: 'backward_50ms_2kHz_80dB.wav' }
+  ];
+  const s2Container = document.getElementById('s2ExampleBtns');
+  if (s2Container) {
+    s2Container.innerHTML = '';
+    s2Examples.forEach((ex, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-example';
+      btn.id = `s2ex${i}`;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${ex.label}`;
+      btn.onclick = () => playExample(path + ex.file, btn, document.getElementById('s2ExampleStatus'));
+      s2Container.appendChild(btn);
+    });
+  }
+}
+
+let exampleSrc = null;
+
+async function playExample(url, btn, statusEl) {
+  // Stop any currently playing example
+  if (exampleSrc) { try { exampleSrc.stop(); } catch(e){} exampleSrc = null; }
+  document.querySelectorAll('.btn-example').forEach(b => b.classList.remove('playing'));
+
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+  btn.classList.add('playing');
+  if (statusEl) statusEl.textContent = 'Playing…';
+
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`File not found (HTTP ${resp.status}) — check filename in config.json`);
+    const buf = await audioCtx.decodeAudioData(await resp.arrayBuffer());
+    exampleSrc = audioCtx.createBufferSource();
+    exampleSrc.buffer = buf;
+    exampleSrc.connect(audioCtx.destination);
+    exampleSrc.onended = () => {
+      btn.classList.remove('playing');
+      if (statusEl) statusEl.textContent = 'Done — click any button to replay';
+      exampleSrc = null;
+    };
+    exampleSrc.start(0);
+  } catch(err) {
+    btn.classList.remove('playing');
+    if (statusEl) statusEl.textContent = '⚠ ' + err.message;
+    console.error(err);
+  }
 }
 
 function showDiagnostics(configMsg) {
@@ -844,6 +957,50 @@ async function playPreamble(filename, btnId, statusId, playedFlag) {
     // Still unlock next button so test isn't blocked if file is missing
     document.getElementById(nextBtnId).disabled = false;
   }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BACK NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function backFromCal() {
+  // If any trials have been recorded, warn that progress will be lost
+  const hasStarted = s1StaircaseLog.length > 0;
+  if (hasStarted) {
+    if (!confirm('Going back will restart the calibration from the beginning. Continue?')) return;
+  }
+  // Stop any playing audio
+  if (currentSrc) { try { currentSrc.stop(); } catch(e){} currentSrc = null; }
+  // Reset Stage 1 state fully so beginCalibration() starts fresh
+  s1FreqOrder    = [];
+  s1FreqIndex    = 0;
+  s1Thresholds   = {};
+  s1StaircaseLog = [];
+  s1HasPlayed    = false;
+  setCalPlaying(false);
+  setCalEnabled(false);
+  showScreen('s-instructions');
+}
+
+function backFromTrial() {
+  // If any results have been recorded, warn that Stage 2 progress will be lost
+  const hasStarted = s2Results.length > 0 || msTrials.length > 0;
+  if (hasStarted) {
+    if (!confirm('Going back will restart the main test from the beginning. All Stage 2 progress will be lost. Continue?')) return;
+  }
+  // Stop any playing audio
+  if (currentSrc) { try { currentSrc.stop(); } catch(e){} currentSrc = null; }
+  // Reset Stage 2 state so beginMainTest() starts fresh
+  s2Blocks      = [];
+  s2BlockIndex  = 0;
+  s2Results     = [];
+  msTrials      = [];
+  msHasPlayed   = false;
+  setTrialPlaying(false);
+  setTrialEnabled(false);
+  // Re-lock the Stage 2 continue button so preamble must be replayed
+  document.getElementById('s2preambleNext').disabled = true;
+  document.getElementById('s2preambleStatus').textContent = 'Press play to hear the introduction';
+  showScreen('s-s2preamble');
 }
 
 // ══════════════════════════════════════════════════════════════════

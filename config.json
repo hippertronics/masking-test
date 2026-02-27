@@ -1,33 +1,33 @@
 {
   "researcher": {
-    "emailjs_key":      "q09MQC52wxmsIT2tu",
-    "emailjs_service":  "service_0kc904b",
-    "emailjs_template": "template_8ouhc8l",
-    "researcher_email": "p.d.morgan@edu.salford.ac.uk"
+    "emailjs_key":      "YOUR_EMAILJS_PUBLIC_KEY",
+    "emailjs_service":  "YOUR_SERVICE_ID",
+    "emailjs_template": "YOUR_TEMPLATE_ID",
+    "researcher_email": "you@university.ac.uk"
   },
 
   "staircase_s1": {
     "comment":                 "Stage 1 — initial threshold finding per frequency",
     "rule":                    "2down1up",
-    "start_level":             70,
+    "start_level":             50,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         8,
     "reversals_for_threshold": 6,
     "min_level":               0,
-    "max_level":               80,
+    "max_level":               50,
     "max_trials":              60
   },
 
   "staircase_s2": {
     "comment":                 "Stage 2 — mini-staircase per delay/condition/frequency block",
     "rule":                    "1up1down",
-    "start_level_offset":      30,
+    "start_level_offset":      10,
     "step_large":              10,
     "step_small":              5,
     "reversals_total":         6,
     "reversals_for_threshold": 4,
-    "max_trials":              40
+    "max_trials":              30
   },
 
   "stimuli": {
@@ -37,9 +37,23 @@
     "conditions":       ["forward", "backward"],
     "level_step":       5,
     "min_level":        0,
-    "max_level":        80,
+    "max_level":        50,
     "masker_level":     80,
     "calibration_tag":  "simultaneous",
     "filename_pattern": "{condition}_{delay}_{frequency}_{level}dB.wav"
+  },
+
+  "example_sounds": {
+    "comment":   "Files played on instruction pages so participants can hear example stimuli. All paths relative to stimuli/ folder.",
+    "stage1": [
+      { "label": "1 kHz example",  "file": "simultaneous_0ms_1kHz_80dB.wav" },
+      { "label": "2 kHz example",  "file": "simultaneous_0ms_2kHz_80dB.wav" }
+    ],
+    "stage2": [
+      { "label": "1 kHz forward",  "file": "forward_50ms_1kHz_80dB.wav" },
+      { "label": "1 kHz backward", "file": "backward_50ms_1kHz_80dB.wav" },
+      { "label": "2 kHz forward",  "file": "forward_50ms_2kHz_80dB.wav" },
+      { "label": "2 kHz backward", "file": "backward_50ms_2kHz_80dB.wav" }
+    ]
   }
 }
