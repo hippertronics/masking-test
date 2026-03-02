@@ -154,19 +154,22 @@ textarea{resize:vertical;min-height:68px;line-height:1.65}
 /* Player */
 .player{
   background:var(--surf2);border:1px solid var(--border);border-radius:10px;
-  padding:2rem 1.5rem 1.5rem;text-align:center;margin-bottom:1.75rem;
+  padding:1rem 1.25rem;text-align:center;margin-bottom:1.25rem;
+  display:flex;align-items:center;gap:1.25rem;
 }
+.player-controls{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.player-info{flex:1;text-align:left}
 .play-btn{
-  width:72px;height:72px;border-radius:50%;background:var(--accent);border:none;
+  width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;
   cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  transition:all .2s;margin-bottom:.9rem;
-  box-shadow:0 4px 20px rgba(200,169,110,.25);
+  transition:all .2s;flex-shrink:0;
+  box-shadow:0 4px 16px rgba(200,169,110,.25);
 }
 .play-btn:hover{background:#dfc088;transform:scale(1.06)}
-.play-btn svg{width:22px;height:22px;fill:#08090d}
-.play-btn.playing{background:var(--accent2);box-shadow:0 4px 20px rgba(126,184,247,.3);animation:pulse 1.4s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(126,184,247,.4)}50%{box-shadow:0 0 0 18px rgba(126,184,247,0)}}
-.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:32px;margin-bottom:.75rem}
+.play-btn svg{width:17px;height:17px;fill:#08090d}
+.play-btn.playing{background:var(--accent2);box-shadow:0 4px 16px rgba(126,184,247,.3);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(126,184,247,.4)}50%{box-shadow:0 0 0 14px rgba(126,184,247,0)}}
+.waveform{display:flex;align-items:center;justify-content:flex-start;gap:3px;height:24px;margin-bottom:.4rem}
 .bar{width:3px;border-radius:2px;background:var(--accent);opacity:.2}
 .waveform.active .bar{opacity:1;animation:wb .9s ease-in-out infinite alternate}
 .bar:nth-child(1){height:7px;animation-delay:0s}.bar:nth-child(2){height:16px;animation-delay:.08s}
@@ -176,21 +179,25 @@ textarea{resize:vertical;min-height:68px;line-height:1.65}
 .bar:nth-child(9){height:17px;animation-delay:.1s}.bar:nth-child(10){height:10px;animation-delay:.2s}
 .bar:nth-child(11){height:26px;animation-delay:.03s}.bar:nth-child(12){height:19px;animation-delay:.15s}
 @keyframes wb{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
-.status-txt{font-size:.67rem;color:var(--muted);letter-spacing:.1em;min-height:1.2em}
-.replay-hint{font-size:.62rem;color:var(--muted);letter-spacing:.08em;margin-bottom:.4rem;visibility:hidden}
+.status-txt{font-size:.67rem;color:var(--muted);letter-spacing:.06em;min-height:1.2em}
+.replay-hint{font-size:.62rem;color:var(--muted);letter-spacing:.06em;margin-bottom:.2rem;visibility:hidden}
 
 /* Question */
-.question{text-align:center;margin-bottom:1.25rem}
-.question p{font-family:var(--fd);font-size:1.15rem;font-weight:300;color:#fff}
+.question{text-align:center;margin-bottom:1rem}
+.question p{font-family:var(--fd);font-size:1.1rem;font-weight:300;color:#fff}
 .question .hint{font-size:.63rem;color:var(--muted);margin-top:.3rem;letter-spacing:.05em}
-.resp-btns{display:flex;gap:1rem;margin-bottom:.5rem}
-.key-hint{font-size:.58rem;color:var(--muted);text-align:center;letter-spacing:.1em;margin-top:.4rem}
+.resp-btns{display:flex;gap:1rem;margin-bottom:1.25rem}
+.resp-btns .btn kbd{
+  display:inline-block;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.15);
+  border-radius:3px;padding:.05em .4em;font-family:var(--fm);font-size:.65rem;
+  margin-left:.45rem;vertical-align:middle;
+}
 kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;padding:.1em .45em;font-family:var(--fm);font-size:.58rem;color:var(--text)}
 
 /* Staircase viz */
-.staircase-viz{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem}
-.staircase-viz .viz-label{font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.65rem}
-.staircase-dots{display:flex;align-items:flex-end;gap:4px;height:48px;overflow:hidden}
+.staircase-viz{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1.1rem;margin-top:1.25rem}
+.staircase-viz .viz-label{font-size:.6rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem}
+.staircase-dots{display:flex;align-items:flex-end;gap:4px;height:36px;overflow:hidden}
 .sdot{width:8px;border-radius:2px 2px 0 0;flex-shrink:0;transition:height .3s ease,background .3s;min-height:4px}
 .sdot.yes{background:var(--yes)}.sdot.no{background:var(--no)}
 .level-display{display:flex;justify-content:space-between;align-items:baseline;margin-top:.65rem}
@@ -400,6 +407,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <li><span class="num">4</span><span>This calibration runs once for each test frequency. You will be told which frequency you are currently being tested on.</span></li>
     <li><span class="num">5</span><span>Trust your first instinct — there are no right or wrong answers.</span></li>
   </ul>
+  <p style="font-size:.72rem;color:var(--text);margin-bottom:1.25rem">
+    You can also use the <kbd>Y</kbd>, <kbd>N</kbd> and <kbd>Space</kbd> keys instead of your mouse.
+  </p>
   <div class="example-sounds" id="s1ExampleSounds">
     <div class="ex-label">Listen to examples — click to play</div>
     <div class="ex-btns" id="s1ExampleBtns"></div>
@@ -418,36 +428,43 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <div class="freq-pill" id="calFreqPill">—</div>
     <div class="freq-desc">Calibration — finding your detection threshold at this frequency</div>
   </div>
+
+  <!-- Compact inline player -->
+  <div class="player">
+    <div class="player-controls">
+      <button class="play-btn" id="calPlayBtn" onclick="playCalStimulus()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </div>
+    <div class="player-info">
+      <div class="waveform" id="calWaveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="replay-hint" id="calReplayHint">↺ Click to replay</div>
+      <div class="status-txt" id="calStatusTxt">Click Play or press <kbd>Space</kbd> to listen</div>
+    </div>
+  </div>
+
+  <!-- Question & response -->
+  <div class="question"><p>Did you hear a tone?</p><div class="hint">Listen before responding</div></div>
+  <div class="resp-btns">
+    <button class="btn btn-no"  id="calBtnNo"  disabled onclick="calResponse(false)">✗ &nbsp;No <kbd>N</kbd></button>
+    <button class="btn btn-yes" id="calBtnYes" disabled onclick="calResponse(true)">✓ &nbsp;Yes <kbd>Y</kbd></button>
+  </div>
+
+  <!-- Response history below controls -->
   <div class="staircase-viz">
-    <div class="viz-label">Response history</div>
+    <div class="viz-label">Response history &nbsp;·&nbsp; Reversals: <span id="calRevCount">0</span> / <span id="calRevTarget">—</span></div>
     <div class="staircase-dots" id="staircaseDots"></div>
     <div class="level-display">
       <div><span class="lval" id="calLevelDisplay" style="display:none">—</span><span class="lunit" style="display:none"> dB</span></div>
-      <div class="rev-count">Reversals: <span id="calRevCount">0</span> / <span id="calRevTarget">—</span></div>
     </div>
   </div>
-  <div class="player">
-    <button class="play-btn" id="calPlayBtn" onclick="playCalStimulus()">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    </button>
-    <div class="waveform" id="calWaveform">
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
-    <div style="margin-top:.5rem">
-      <div class="replay-hint" id="calReplayHint">↺ Click to replay</div>
-      <div class="status-txt" id="calStatusTxt">Press play to listen</div>
-    </div>
-  </div>
-  <div class="question"><p>Did you hear a tone?</p><div class="hint">Listen before responding</div></div>
-  <div class="resp-btns">
-    <button class="btn btn-no"  id="calBtnNo"  disabled onclick="calResponse(false)">✗ &nbsp;No</button>
-    <button class="btn btn-yes" id="calBtnYes" disabled onclick="calResponse(true)">✓ &nbsp;Yes</button>
-  </div>
-  <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
-  <div style="text-align:center;margin-top:1.25rem">
+
+  <div style="text-align:center;margin-top:1rem">
     <button class="btn btn-ghost" style="font-size:.65rem;opacity:.7" onclick="backFromCal()">← Back to instructions</button>
   </div>
 </div>
@@ -489,6 +506,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <div class="ex-btns" id="s2ExampleBtns"></div>
     <div class="ex-status" id="s2ExampleStatus"></div>
   </div>
+  <p style="font-size:.72rem;color:var(--text);margin-bottom:1.25rem">
+    You can also use the <kbd>Y</kbd>, <kbd>N</kbd> and <kbd>Space</kbd> keys instead of your mouse.
+  </p>
   <button class="btn btn-primary" id="s2preambleNext" onclick="stopPreambleAndGo('beginMainTest')">Begin main test →</button>
 </div>
 
@@ -511,20 +531,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <!-- Block overview pips -->
   <div class="block-overview" id="blockOverview"></div>
 
-  <!-- Mini-staircase viz -->
-  <div class="staircase-viz">
-    <div class="viz-label">Response history</div>
-    <div class="staircase-dots" id="miniStaircaseDots"></div>
-    <div class="level-display">
-      <div><span class="lval" id="miniLevelDisplay" style="display:none">—</span><span class="lunit" style="display:none"> dB</span></div>
-      <div class="rev-count">Reversals: <span id="miniRevCount">0</span> / <span id="miniRevTarget">—</span></div>
-    </div>
-  </div>
-
   <!-- Debug tags hidden — retained for JS references -->
   <div style="display:none">
     <span id="trialFreqPill">—</span>
-    <span id="trialBadgeText">—</span>
     <span id="trialCondLabel">—</span>
     <span id="trialDelayLabel">—</span>
     <span id="dbgFreq">—</span>
@@ -533,28 +542,42 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     <span id="dbgLevel">—</span>
   </div>
 
+  <!-- Compact inline player -->
   <div class="player">
-    <button class="play-btn" id="trialPlayBtn" onclick="playTrialStimulus()">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    </button>
-    <div class="waveform" id="trialWaveform">
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="player-controls">
+      <button class="play-btn" id="trialPlayBtn" onclick="playTrialStimulus()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
     </div>
-    <div style="margin-top:.5rem">
+    <div class="player-info">
+      <div class="waveform" id="trialWaveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
       <div class="replay-hint" id="trialReplayHint">↺ Click to replay</div>
-      <div class="status-txt" id="trialStatusTxt">Press play to listen</div>
+      <div class="status-txt" id="trialStatusTxt">Click Play or press <kbd>Space</kbd> to listen</div>
     </div>
   </div>
+
+  <!-- Question & response -->
   <div class="question"><p>Did you hear a tone in the stimulus?</p><div class="hint">Listen at least once before responding</div></div>
   <div class="resp-btns">
-    <button class="btn btn-no"  id="trialBtnNo"  disabled onclick="trialResponse(false)">✗ &nbsp;No</button>
-    <button class="btn btn-yes" id="trialBtnYes" disabled onclick="trialResponse(true)">✓ &nbsp;Yes</button>
+    <button class="btn btn-no"  id="trialBtnNo"  disabled onclick="trialResponse(false)">✗ &nbsp;No <kbd>N</kbd></button>
+    <button class="btn btn-yes" id="trialBtnYes" disabled onclick="trialResponse(true)">✓ &nbsp;Yes <kbd>Y</kbd></button>
   </div>
-  <div class="key-hint"><kbd>Space</kbd> play &nbsp;·&nbsp; <kbd>Y</kbd> yes &nbsp;·&nbsp; <kbd>N</kbd> no</div>
-  <div style="text-align:center;margin-top:1.25rem">
+
+  <!-- Response history below controls -->
+  <div class="staircase-viz">
+    <div class="viz-label">Response history &nbsp;·&nbsp; Reversals: <span id="miniRevCount">0</span> / <span id="miniRevTarget">—</span></div>
+    <div class="staircase-dots" id="miniStaircaseDots"></div>
+    <div class="level-display">
+      <div><span class="lval" id="miniLevelDisplay" style="display:none">—</span><span class="lunit" style="display:none"> dB</span></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem">
     <button class="btn btn-ghost" style="font-size:.65rem;opacity:.7" onclick="backFromTrial()">← Back to instructions</button>
   </div>
 </div>
@@ -606,7 +629,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.5';
+const APP_VERSION = '2.6';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
@@ -1104,7 +1127,7 @@ function startS1FreqBlock() {
   document.getElementById('staircaseDots').innerHTML  = '';
 
   setCalEnabled(false);
-  setCalStatus('Press play to listen');
+  setCalStatus(PLAY_PROMPT);
   setCalPlaying(false);
   document.getElementById('calReplayHint').style.visibility = 'hidden';
   showScreen('s-calibration');
@@ -1176,7 +1199,7 @@ function calResponse(heard) {
 
 function resetCalUI() {
   s1HasPlayed=false; setCalEnabled(false);
-  setCalStatus('Press play to listen'); setCalPlaying(false);
+  setCalStatus(PLAY_PROMPT); setCalPlaying(false);
   document.getElementById('calReplayHint').style.visibility='hidden';
 }
 
@@ -1301,7 +1324,7 @@ function startDelay() {
   document.getElementById('dbgLevel').textContent = msLevel + ' dB';
 
   setTrialEnabled(false);
-  setTrialStatus('Press play to listen');
+  setTrialStatus(PLAY_PROMPT);
   setTrialPlaying(false);
   document.getElementById('trialReplayHint').style.visibility='hidden';
 }
@@ -1383,7 +1406,7 @@ function trialResponse(heard) {
   document.getElementById('miniLevelDisplay').textContent = msLevel;
 
   msHasPlayed=false; setTrialEnabled(false);
-  setTrialStatus('Press play to listen'); setTrialPlaying(false);
+  setTrialStatus(PLAY_PROMPT); setTrialPlaying(false);
   document.getElementById('trialReplayHint').style.visibility='hidden';
 }
 
@@ -1613,11 +1636,12 @@ const san = s=>(s||'p').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_-]/g,'');
 // ══════════════════════════════════════════════════════════════════
 // VISUAL HELPERS
 // ══════════════════════════════════════════════════════════════════
+const PLAY_PROMPT = 'Click Play or press <kbd>Space</kbd> to listen';
 function setCalEnabled(on){document.getElementById('calBtnYes').disabled=!on;document.getElementById('calBtnNo').disabled=!on}
-function setCalStatus(t){document.getElementById('calStatusTxt').textContent=t}
+function setCalStatus(t){document.getElementById('calStatusTxt').innerHTML=t}
 function setCalPlaying(on){document.getElementById('calWaveform').classList.toggle('active',on);document.getElementById('calPlayBtn').classList.toggle('playing',on)}
 function setTrialEnabled(on){document.getElementById('trialBtnYes').disabled=!on;document.getElementById('trialBtnNo').disabled=!on}
-function setTrialStatus(t){document.getElementById('trialStatusTxt').textContent=t}
+function setTrialStatus(t){document.getElementById('trialStatusTxt').innerHTML=t}
 function setTrialPlaying(on){document.getElementById('trialWaveform').classList.toggle('active',on);document.getElementById('trialPlayBtn').classList.toggle('playing',on)}
 function setPlayingVisual(isCal,on){isCal?setCalPlaying(on):setTrialPlaying(on)}
 
