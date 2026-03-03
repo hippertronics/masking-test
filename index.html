@@ -623,8 +623,10 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 /* ═══════════════════════════════════════════════════════════════════════
    TEMPORAL MASKING TEST  v2.0
    Two-stage adaptive protocol:
-     Stage 1 — 2-down/1-up staircase, one per frequency (blocked)
-     Stage 2 — 1-up/1-down mini-staircases per delay/condition/frequency
+     Stage 1 — staircase, one per frequency (blocked)
+     Stage 2 — mini-staircases per delay/condition/frequency
+     Rule format: 'NdownMup' where N = consecutive correct before stepping down
+       e.g. '1down1up' → 50% threshold, '2down1up' → 70.7%, '3down1up' → 79.4%
                Frequencies blocked & paired (fwd+bwd), order randomised
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
@@ -887,7 +889,7 @@ function defaultCFG() {
   return {
     staircase_s1:{ rule:'2down1up', start_level:50, step_large:10, step_small:5,
       reversals_total:8, reversals_for_threshold:6, min_level:0, max_level:50, max_trials:60 },
-    staircase_s2:{ rule:'1up1down', start_level_offset:10, step_large:10, step_small:5,
+    staircase_s2:{ rule:'1down1up', start_level_offset:10, step_large:10, step_small:5,
       reversals_total:6, reversals_for_threshold:4, max_trials:30 },
     stimuli:{ path:'stimuli/', frequencies:['1kHz','2kHz'],
       delays_ms:[0,5,10,15,20,25,30,35,40,45,50],
@@ -1157,6 +1159,7 @@ function calResponse(heard) {
   if (!s1HasPlayed) return;
   const sc   = CFG.staircase_s1;
   const step = s1LargeStep ? sc.step_large : sc.step_small;
+  const downsRequired = parseInt((sc.rule||'2down1up').match(/^(\d+)/)[1]);
 
   s1TrialCount++;
   s1StaircaseLog.push({freq:s1FreqOrder[s1FreqIndex],trial:s1TrialCount,level:s1Level,heard,reversal:false});
@@ -1172,10 +1175,10 @@ function calResponse(heard) {
   let dir;
   if (heard) {
     s1ConsecYes++;
-    if (s1ConsecYes >= 2) {
+    if (s1ConsecYes >= downsRequired) {
       dir='down'; s1Level=Math.max(sc.min_level, s1Level-step); s1ConsecYes=0;
     } else {
-      resetCalUI(); return; // wait for second yes
+      resetCalUI(); return; // wait for required number of consecutive yes responses
     }
   } else {
     dir='up'; s1ConsecYes=0; s1Level=Math.min(sc.max_level, s1Level+step);
@@ -1366,6 +1369,7 @@ function trialResponse(heard) {
   const block = s2Blocks[s2BlockIndex];
   const delay = msDelays[msDelayIndex];
   const avail = getAvailLevels(block.condition, delay, block.freq);
+  const downsRequired = parseInt((sc.rule||'1up1down').match(/^(\d+)/)[1]);
 
   msTrialCount++;
   msTrials.push({trial:msTrialCount, level:msLevel, heard, reversal:false});
@@ -1381,10 +1385,18 @@ function trialResponse(heard) {
 
   let dir;
   if (heard) {
-    // 1-up/1-down: one yes → go down
-    dir='down';
-    msLevel = clampToAvail(msLevel-step, avail);
-    msConsecYes=0;
+    msConsecYes++;
+    if (msConsecYes >= downsRequired) {
+      dir='down';
+      msLevel = clampToAvail(msLevel-step, avail);
+      msConsecYes=0;
+    } else {
+      // waiting for required consecutive yes responses — replay prompt
+      msHasPlayed=false; setTrialEnabled(false);
+      setTrialStatus(PLAY_PROMPT); setTrialPlaying(false);
+      document.getElementById('trialReplayHint').style.visibility='hidden';
+      return;
+    }
   } else {
     dir='up';
     msLevel = clampToAvail(msLevel+step, avail);
