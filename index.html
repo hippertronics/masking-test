@@ -626,8 +626,12 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 </div><!-- /wrap -->
 
 <script>
+// ── VERSION — update this when you make any changes ───────────────
+const APP_VERSION = '2.9';
+// ──────────────────────────────────────────────────────────────────
+
 /* ═══════════════════════════════════════════════════════════════════════
-   TEMPORAL MASKING TEST  v2.0
+   TEMPORAL MASKING TEST
    Two-stage adaptive protocol:
      Stage 1 — staircase, one per frequency (blocked)
      Stage 2 — mini-staircases per delay/condition/frequency
@@ -637,12 +641,13 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.8';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
 let CFG = null;
 let EJS_KEY = '', EJS_SERVICE = '', EJS_TEMPLATE = '', RESEARCHER_EMAIL = '';
+let activeFolder = '';    // resolved stimulus folder path for this session
+let activeFolderLabel = ''; // 'folder_1' or 'folder_2' — recorded in results
 
 // ── Participant ────────────────────────────────────────────────────
 let participant  = {};
@@ -714,6 +719,10 @@ async function loadConfig() {
 
     if (EJS_KEY) emailjs.init({publicKey: EJS_KEY});
 
+    // ── Resolve stimulus folder ────────────────────────────────────
+    // Priority: URL param ?folder=1 or ?folder=2  >  config select  >  default
+    resolveActiveFolder();
+
     // Auto-generate file list from config
     autoGenerateFileList();
 
@@ -742,6 +751,7 @@ async function loadConfig() {
       showScreen('s-setup');
     } else {
       // Still proceed — use defaults, email will silently fail
+      resolveActiveFolder();
       autoGenerateFileList();
       buildExampleButtons();
       showScreen('s-participant');
@@ -750,6 +760,41 @@ async function loadConfig() {
 
   document.getElementById('calRevTarget').textContent  = CFG.staircase_s1.reversals_total;
   document.getElementById('miniRevTarget').textContent = CFG.staircase_s2.reversals_total;
+}
+
+function resolveActiveFolder() {
+  const sf = CFG.stimulus_folders || {};
+  const f1 = sf.folder_1 || 'stimuli_1';
+  const f2 = sf.folder_2 || 'stimuli_2';
+
+  // URL param overrides everything: ?folder=1 or ?folder=2
+  const urlParam = new URLSearchParams(window.location.search).get('folder');
+  let chosen;
+  if (urlParam === '1') {
+    chosen = 'folder_1';
+  } else if (urlParam === '2') {
+    chosen = 'folder_2';
+  } else {
+    // Fall back to config select value
+    const sel = (sf.select || 'folder_1').toLowerCase();
+    if (sel === 'random') {
+      chosen = Math.random() < 0.5 ? 'folder_1' : 'folder_2';
+    } else if (sel === 'folder_2') {
+      chosen = 'folder_2';
+    } else {
+      chosen = 'folder_1';
+    }
+  }
+
+  activeFolderLabel = chosen;
+  const folderName  = chosen === 'folder_2' ? f2 : f1;
+  // Ensure path ends with a slash
+  activeFolder = folderName.replace(/\/?$/, '/');
+
+  // Override stimuli.path so all downstream code uses the resolved folder
+  CFG.stimuli.path = activeFolder;
+
+  console.log(`[Masking Test] Stimulus folder resolved: ${activeFolder} (${chosen}${urlParam ? ', URL override' : ''})`);
 }
 
 function autoGenerateFileList() {
@@ -880,7 +925,7 @@ function showDiagnostics(configMsg) {
     `<strong>EmailJS service:</strong> ${EJS_SERVICE || '⚠ missing'}`,
     `<strong>EmailJS template:</strong> ${EJS_TEMPLATE || '⚠ missing'}`,
     `<strong>Researcher email:</strong> ${RESEARCHER_EMAIL || '⚠ missing'}`,
-    `<strong>Stimuli path:</strong> ${s.path}`,
+    `<strong>Stimuli path:</strong> ${s.path} <em>(${activeFolderLabel}${new URLSearchParams(window.location.search).get('folder') ? ', URL override' : ''})</em>`,
     `<strong>Frequencies:</strong> ${(s.frequencies||[]).join(', ')}`,
     `<strong>Delays (ms):</strong> ${(s.delays_ms||[]).join(', ')}`,
     `<strong>Conditions:</strong> ${(s.conditions||[]).join(', ')}`,
@@ -1584,6 +1629,7 @@ function buildSummary() {
     `Hearing:       ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `Device:        ${participant.listenDevice}`,
     `Session start: ${sessionStart}`,
+    `Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `Freq order:    ${s1FreqOrder.join(', ')}`,
     `Block order:   ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
     ``,`STAGE 1 THRESHOLDS:`,threshLines,
@@ -1602,6 +1648,7 @@ function buildCSV() {
     `# Hearing: ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `# Device: ${participant.listenDevice}`,
     `# Session start: ${sessionStart}`,
+    `# Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `# Freq order: ${s1FreqOrder.join(', ')}`,
     `# Block order: ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
     `#`,
