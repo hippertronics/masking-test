@@ -708,7 +708,7 @@ async function loadConfig() {
   const diagMode = new URLSearchParams(window.location.search).has('setup');
 
   try {
-    const r = await fetch('config.json');
+    const r = await fetch('config.json?v=' + Date.now());
     if (!r.ok) throw new Error('config.json not found (HTTP ' + r.status + ')');
     CFG = await r.json();
 
