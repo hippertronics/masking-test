@@ -402,10 +402,10 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration Instructions</h2></div>
   <ul class="steps">
     <li><span class="num">1</span><span>Make sure you are wearing headphones and are in a quiet environment.</span></li>
-    <li><span class="num">2</span><span>You will hear a series of short stimuli. Each contains a noise burst — a tone may or may not be present within it.</span></li>
-    <li><span class="num">3</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find your detection threshold.</span></li>
+    <li><span class="num">2</span><span>You will hear a series of short stimuli. Each contains a click and a tone which changes in level as the test progresses.</span></li>
+    <li><span class="num">3</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find the threshold at which you can hear the tone.</span></li>
     <li><span class="num">4</span><span>This calibration runs once for each test frequency. You will be told which frequency you are currently being tested on.</span></li>
-    <li><span class="num">5</span><span>Trust your first instinct — there are no right or wrong answers.</span></li>
+    <li><span class="num">5</span><span>Trust your instinct — the system changes the level up and down in response to your answers to find your threshold.</span></li>
   </ul>
   <p style="font-size:.72rem;color:var(--text);margin-bottom:1.25rem">
     You can also use the <kbd>Y</kbd>, <kbd>N</kbd> and <kbd>Space</kbd> keys instead of your mouse.
@@ -490,10 +490,16 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <div id="s-s2preamble" class="screen">
   <div class="sh"><span class="tag">Step 3 of 4</span><h2>Main Test — Listen First</h2></div>
   <div id="allCalThreshCards" style="margin-bottom:1.25rem"></div>
-  <p style="font-size:.75rem;color:var(--text);margin-bottom:1.5rem;line-height:1.7">
-    Both calibration thresholds have been established. Please listen to this introduction
-    before beginning the main test.
+  <p style="font-size:.75rem;color:var(--text);margin-bottom:1rem;line-height:1.7">
+    Both calibration thresholds have been established. Please read the instructions below,
+    then listen to the audio introduction before beginning the main test.
   </p>
+  <ul class="steps" style="margin-bottom:1.25rem">
+    <li><span class="num">1</span><span>You will now hear a series of stimuli where the tone is played just before or just after the masking click.</span></li>
+    <li><span class="num">2</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find the threshold at which you can hear the tone.</span></li>
+    <li><span class="num">3</span><span>The test is split into four blocks — forward and backward masking for each of the two tone frequencies.</span></li>
+    <li><span class="num">4</span><span>As before, the test will staircase up and down in response to your answers to find your threshold.</span></li>
+  </ul>
   <div class="preamble-player">
     <div class="preamble-label">Stage 2 introduction</div>
     <button class="play-btn" id="s2preambleBtn" onclick="togglePreamble('stage_2_preamble.wav','s2preambleBtn','s2preambleStatus')">
@@ -631,7 +637,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
    Filename: {condition}_{delay}ms_{frequency}_{level}dB.wav
 ═══════════════════════════════════════════════════════════════════════ */
 
-const APP_VERSION = '2.7';
+const APP_VERSION = '2.8';
 document.getElementById('versionDisplay').textContent = APP_VERSION;
 
 // ── Config & EmailJS ───────────────────────────────────────────────
