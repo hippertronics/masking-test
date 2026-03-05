@@ -1633,6 +1633,7 @@ function buildSummary() {
   return [
     `=== TEMPORAL MASKING TEST RESULTS ===`,
     `App version:   ${APP_VERSION}`,
+    `Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `Participant:   ${participant.name}`,
     `Age:           ${participant.age}`,
     `Gender:        ${participant.gender}`,
@@ -1652,6 +1653,7 @@ function buildCSV() {
   const lines=[
     `# Temporal Masking Test — Results`,
     `# App version: ${APP_VERSION}`,
+    `# Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `# Participant: ${participant.name}`,
     `# Age: ${participant.age}`,
     `# Gender: ${participant.gender}`,
