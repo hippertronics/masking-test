@@ -1785,4 +1785,11 @@ document.addEventListener('keydown',e=>{
     if(e.code==='KeyN'&&!document.getElementById('calBtnNo').disabled)  calResponse(false);
   }
   if (active==='s-trial') {
-    if(e.code==='Space'){e.preventDefault();playTri
+    if(e.code==='Space'){e.preventDefault();playTrialStimulus()}
+    if(e.code==='KeyY'&&!document.getElementById('trialBtnYes').disabled) trialResponse(true);
+    if(e.code==='KeyN'&&!document.getElementById('trialBtnNo').disabled)  trialResponse(false);
+  }
+});
+</script>
+</body>
+</html>
