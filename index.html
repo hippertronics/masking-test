@@ -627,7 +627,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── VERSION — update this when you make any changes ───────────────
-const APP_VERSION = '2.9';
+const APP_VERSION = '3.0';
 // ──────────────────────────────────────────────────────────────────
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -747,14 +747,15 @@ async function loadConfig() {
     cfgEl.className = 'config-status err';
     cfgEl.textContent = '⚠ ' + e.message;
 
+    // resolveActiveFolder must run before showDiagnostics so the folder vars are populated
+    resolveActiveFolder();
+    autoGenerateFileList();
+    buildExampleButtons();
+
     if (diagMode) {
       showDiagnostics('⚠ ' + e.message);
       showScreen('s-setup');
     } else {
-      // Still proceed — use defaults, email will silently fail
-      resolveActiveFolder();
-      autoGenerateFileList();
-      buildExampleButtons();
       showScreen('s-participant');
     }
   }
@@ -916,26 +917,34 @@ async function playExample(url, btn, statusEl) {
 }
 
 function showDiagnostics(configMsg) {
-  const s      = CFG.stimuli;
-  const calTag = s.calibration_tag || 'simultaneous';
-  const calCount = allFiles.filter(f=>f.parsed?.condition===calTag).length;
-  const s2Count  = allFiles.filter(f=>f.parsed?.condition!==calTag).length;
-  document.getElementById('diagOutput').innerHTML = [
-    `<strong>Config status:</strong> ${configMsg}`,
-    `<strong>EmailJS key:</strong> ${EJS_KEY ? EJS_KEY.slice(0,8)+'…' : '⚠ missing'}`,
-    `<strong>EmailJS service:</strong> ${EJS_SERVICE || '⚠ missing'}`,
-    `<strong>EmailJS template:</strong> ${EJS_TEMPLATE || '⚠ missing'}`,
-    `<strong>Researcher email:</strong> ${RESEARCHER_EMAIL || '⚠ missing'}`,
-    `<strong>Stimuli folder (configured):</strong> ${activeFolderConfigured}${new URLSearchParams(window.location.search).get('folder') ? ' <span style="color:var(--accent)">[ URL override: ?folder='+new URLSearchParams(window.location.search).get('folder')+' ]</span>' : ''}`,
-    `<strong>Stimuli folder (this session):</strong> <span style="color:var(--yes)">${activeFolderLabel}</span> → <code>${activeFolder}</code>`,
-    `<strong>Frequencies:</strong> ${(s.frequencies||[]).join(', ')}`,
-    `<strong>Delays (ms):</strong> ${(s.delays_ms||[]).join(', ')}`,
-    `<strong>Conditions:</strong> ${(s.conditions||[]).join(', ')}`,
-    `<strong>Level range:</strong> ${s.min_level}–${s.max_level} dB in ${s.level_step} dB steps`,
-    `<strong>Calibration files generated:</strong> ${calCount}`,
-    `<strong>Stage 2 files generated:</strong> ${s2Count}`,
-    `<strong>Total files in list:</strong> ${allFiles.length}`,
-  ].join('<br>');
+  try {
+    const s      = CFG.stimuli || {};
+    const calTag = s.calibration_tag || 'simultaneous';
+    const calCount = allFiles.filter(f=>f.parsed?.condition===calTag).length;
+    const s2Count  = allFiles.filter(f=>f.parsed?.condition!==calTag).length;
+    const urlFolder = new URLSearchParams(window.location.search).get('folder');
+    const urlNote   = urlFolder ? ` <span style="color:var(--accent)">[ URL override: ?folder=${urlFolder} ]</span>` : '';
+    document.getElementById('diagOutput').innerHTML = [
+      `<strong>Config status:</strong> ${configMsg}`,
+      `<strong>App version:</strong> ${APP_VERSION}`,
+      `<strong>EmailJS key:</strong> ${EJS_KEY ? EJS_KEY.slice(0,8)+'…' : '⚠ missing'}`,
+      `<strong>EmailJS service:</strong> ${EJS_SERVICE || '⚠ missing'}`,
+      `<strong>EmailJS template:</strong> ${EJS_TEMPLATE || '⚠ missing'}`,
+      `<strong>Researcher email:</strong> ${RESEARCHER_EMAIL || '⚠ missing'}`,
+      `<strong>Stimuli folder (configured):</strong> ${activeFolderConfigured || '—'}${urlNote}`,
+      `<strong>Stimuli folder (this session):</strong> <span style="color:var(--yes)">${activeFolderLabel || '—'}</span> → <code>${activeFolder || '—'}</code>`,
+      `<strong>Frequencies:</strong> ${(s.frequencies||[]).join(', ')}`,
+      `<strong>Delays (ms):</strong> ${(s.delays_ms||[]).join(', ')}`,
+      `<strong>Conditions:</strong> ${(s.conditions||[]).join(', ')}`,
+      `<strong>Level range:</strong> ${s.min_level ?? '?'}–${s.max_level ?? '?'} dB in ${s.level_step ?? '?'} dB steps`,
+      `<strong>Calibration files generated:</strong> ${calCount}`,
+      `<strong>Stage 2 files generated:</strong> ${s2Count}`,
+      `<strong>Total files in list:</strong> ${allFiles.length}`,
+    ].join('<br>');
+  } catch(diagErr) {
+    document.getElementById('diagOutput').innerHTML =
+      `<strong>Config status:</strong> ${configMsg}<br><span style="color:var(--no)">⚠ Diagnostics error: ${diagErr.message}</span>`;
+  }
 }
 
 function defaultCFG() {
