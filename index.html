@@ -286,7 +286,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <body>
 <div class="wrap">
   <div class="wordmark">
-    <div class="lab">Paul Morgan · p.d.morgan@edu.salford.ac.uk</div>
+    <div class="lab">Paul Morgan · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8c896dc96d5d7cadfd9d6f8dddccd96cbd9d4ded7cadc96d9db96cdd3">[email&#160;protected]</a></div>
     <h1>Temporal <em>Masking</em> Test</h1>
     <div class="sub">Adaptive threshold · Forward &amp; backward masking</div>
     <div class="ver">v<span id="versionDisplay">—</span></div>
@@ -625,7 +625,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   </div><!-- /card -->
 </div><!-- /wrap -->
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── VERSION — update this when you make any changes ───────────────
 const APP_VERSION = '2.9';
 // ──────────────────────────────────────────────────────────────────
@@ -646,8 +646,9 @@ document.getElementById('versionDisplay').textContent = APP_VERSION;
 // ── Config & EmailJS ───────────────────────────────────────────────
 let CFG = null;
 let EJS_KEY = '', EJS_SERVICE = '', EJS_TEMPLATE = '', RESEARCHER_EMAIL = '';
-let activeFolder = '';    // resolved stimulus folder path for this session
-let activeFolderLabel = ''; // 'folder_1' or 'folder_2' — recorded in results
+let activeFolder = '';           // resolved stimulus folder path for this session
+let activeFolderLabel = '';      // 'folder_1' or 'folder_2' — recorded in results
+let activeFolderConfigured = ''; // value of config.select before random resolution
 
 // ── Participant ────────────────────────────────────────────────────
 let participant  = {};
@@ -767,6 +768,10 @@ function resolveActiveFolder() {
   const f1 = sf.folder_1 || 'stimuli_1';
   const f2 = sf.folder_2 || 'stimuli_2';
 
+  // Store what the config says before any random resolution
+  const sel = (sf.select || 'folder_1').toLowerCase();
+  activeFolderConfigured = sel;
+
   // URL param overrides everything: ?folder=1 or ?folder=2
   const urlParam = new URLSearchParams(window.location.search).get('folder');
   let chosen;
@@ -774,16 +779,12 @@ function resolveActiveFolder() {
     chosen = 'folder_1';
   } else if (urlParam === '2') {
     chosen = 'folder_2';
+  } else if (sel === 'random') {
+    chosen = Math.random() < 0.5 ? 'folder_1' : 'folder_2';
+  } else if (sel === 'folder_2') {
+    chosen = 'folder_2';
   } else {
-    // Fall back to config select value
-    const sel = (sf.select || 'folder_1').toLowerCase();
-    if (sel === 'random') {
-      chosen = Math.random() < 0.5 ? 'folder_1' : 'folder_2';
-    } else if (sel === 'folder_2') {
-      chosen = 'folder_2';
-    } else {
-      chosen = 'folder_1';
-    }
+    chosen = 'folder_1';
   }
 
   activeFolderLabel = chosen;
@@ -794,7 +795,7 @@ function resolveActiveFolder() {
   // Override stimuli.path so all downstream code uses the resolved folder
   CFG.stimuli.path = activeFolder;
 
-  console.log(`[Masking Test] Stimulus folder resolved: ${activeFolder} (${chosen}${urlParam ? ', URL override' : ''})`);
+  console.log(`[Masking Test] Stimulus folder: ${activeFolder} (${chosen}${urlParam ? ', URL override' : ''})`);
 }
 
 function autoGenerateFileList() {
@@ -925,7 +926,8 @@ function showDiagnostics(configMsg) {
     `<strong>EmailJS service:</strong> ${EJS_SERVICE || '⚠ missing'}`,
     `<strong>EmailJS template:</strong> ${EJS_TEMPLATE || '⚠ missing'}`,
     `<strong>Researcher email:</strong> ${RESEARCHER_EMAIL || '⚠ missing'}`,
-    `<strong>Stimuli path:</strong> ${s.path} <em>(${activeFolderLabel}${new URLSearchParams(window.location.search).get('folder') ? ', URL override' : ''})</em>`,
+    `<strong>Stimuli folder (configured):</strong> ${activeFolderConfigured}${new URLSearchParams(window.location.search).get('folder') ? ' <span style="color:var(--accent)">[ URL override: ?folder='+new URLSearchParams(window.location.search).get('folder')+' ]</span>' : ''}`,
+    `<strong>Stimuli folder (this session):</strong> <span style="color:var(--yes)">${activeFolderLabel}</span> → <code>${activeFolder}</code>`,
     `<strong>Frequencies:</strong> ${(s.frequencies||[]).join(', ')}`,
     `<strong>Delays (ms):</strong> ${(s.delays_ms||[]).join(', ')}`,
     `<strong>Conditions:</strong> ${(s.conditions||[]).join(', ')}`,
@@ -1783,11 +1785,4 @@ document.addEventListener('keydown',e=>{
     if(e.code==='KeyN'&&!document.getElementById('calBtnNo').disabled)  calResponse(false);
   }
   if (active==='s-trial') {
-    if(e.code==='Space'){e.preventDefault();playTrialStimulus()}
-    if(e.code==='KeyY'&&!document.getElementById('trialBtnYes').disabled) trialResponse(true);
-    if(e.code==='KeyN'&&!document.getElementById('trialBtnNo').disabled)  trialResponse(false);
-  }
-});
-</script>
-</body>
-</html>
+    if(e.code==='Space'){e.preventDefault();playTri
