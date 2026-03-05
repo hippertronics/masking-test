@@ -10,7 +10,7 @@
     "comment":   "Controls which stimulus folder is used. 'folder_1', 'folder_2', or 'random'. Can be overridden per-session by adding ?folder=1 or ?folder=2 to the URL.",
     "folder_1":  "stimuli-click",
     "folder_2":  "stimuli-noise",
-    "select":    "folder_2"
+    "select":    "random"
   },
 
   "staircase_s1": {
