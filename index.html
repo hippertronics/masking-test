@@ -603,7 +603,33 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 
 
 <!-- ══════════════════════════════════════
-     S10 — COMPLETE
+     S10 — COMMENTS
+═══════════════════════════════════════ -->
+<div id="s-comments" class="screen">
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:2.8rem;margin-bottom:.6rem">&#10003;</div>
+    <div style="font-family:var(--fd);font-size:1.6rem;font-weight:300;color:#fff;margin-bottom:.35rem">Almost Done</div>
+    <div style="font-size:.68rem;color:var(--text);letter-spacing:.08em">Do you have any comments about the test?</div>
+  </div>
+  <div class="field">
+    <label class="lbl">Comments <span style="color:var(--muted);font-size:.58rem;text-transform:none;letter-spacing:0">(optional)</span></label>
+    <textarea id="participantComments" rows="5" placeholder="Any thoughts on the test, difficulty, sound quality, technical issues…" style="min-height:110px"></textarea>
+  </div>
+  <div style="margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;font-size:.62rem;color:var(--muted);margin-bottom:.4rem">
+      <span id="autoSubmitMsg">Results will be submitted automatically in <strong id="countdownVal" style="color:var(--accent)">60</strong>s</span>
+      <span id="autoSubmitCancelled" style="color:var(--yes);display:none">&#10003; Will submit when you click below</span>
+    </div>
+    <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+      <div id="countdownBar" style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:100%;transition:width 1s linear"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="submitComments()">Submit &amp; complete →</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S11 — COMPLETE
 ═══════════════════════════════════════ -->
 <div id="s-complete" class="screen">
   <div style="text-align:center;margin-bottom:1.5rem">
@@ -627,7 +653,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── VERSION — update this when you make any changes ───────────────
-const APP_VERSION = '3.0';
+const APP_VERSION = '3.1';
 // ──────────────────────────────────────────────────────────────────
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -758,6 +784,14 @@ async function loadConfig() {
     } else {
       showScreen('s-participant');
     }
+  }
+
+  // ── URL ?screen= jump — for testing/development ─────────────────
+  const screenParam = new URLSearchParams(window.location.search).get('screen');
+  const validScreens = ['s-participant','s-s1preamble','s-instructions','s-calibration',
+    's-between-cal','s-s2preamble','s-trial','s-between-blocks','s-comments','s-complete'];
+  if (screenParam && validScreens.includes(screenParam)) {
+    showScreen(screenParam);
   }
 
   document.getElementById('calRevTarget').textContent  = CFG.staircase_s1.reversals_total;
@@ -1589,6 +1623,59 @@ async function playAudio(fileObj, context) {
 // ══════════════════════════════════════════════════════════════════
 function finishTest() {
   updateOverallProgress();
+  showCommentsScreen();
+}
+
+// ── Comments & auto-submit ─────────────────────────────────────────
+let countdownTimer  = null;
+let countdownSecs   = 60;
+let userTyped       = false;
+
+function showCommentsScreen() {
+  document.getElementById('participantComments').value = '';
+  userTyped     = false;
+  countdownSecs = 60;
+  document.getElementById('countdownVal').textContent  = 60;
+  document.getElementById('countdownBar').style.width  = '100%';
+  document.getElementById('autoSubmitMsg').style.display       = '';
+  document.getElementById('autoSubmitCancelled').style.display = 'none';
+
+  // Start countdown
+  if (countdownTimer) clearInterval(countdownTimer);
+  // Nudge the bar on the next frame so the CSS transition kicks in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.getElementById('countdownBar').style.width = ((59/60)*100)+'%';
+    });
+  });
+  countdownTimer = setInterval(() => {
+    countdownSecs--;
+    document.getElementById('countdownVal').textContent = countdownSecs;
+    document.getElementById('countdownBar').style.width = (Math.max(0,countdownSecs-1)/60*100)+'%';
+    if (countdownSecs <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      submitComments();
+    }
+  }, 1000);
+
+  // Cancel auto-submit if user starts typing
+  document.getElementById('participantComments').addEventListener('input', function handler() {
+    if (!userTyped) {
+      userTyped = true;
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+      document.getElementById('autoSubmitMsg').style.display       = 'none';
+      document.getElementById('autoSubmitCancelled').style.display = '';
+      document.getElementById('countdownBar').style.width = '0%';
+    }
+  }, { once: true });
+
+  showScreen('s-comments');
+}
+
+function submitComments() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  participant.comments = document.getElementById('participantComments').value.trim() || '—';
   document.getElementById('completeSub').textContent =
     `${s2Results.length} delay conditions tested · ${participant.name} · `+
     new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
@@ -1641,6 +1728,7 @@ function buildSummary() {
     `Hearing:       ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `Device:        ${participant.listenDevice}`,
     `Session start: ${sessionStart}`,
+    `Comments:      ${participant.comments || '—'}`,
     `Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `Freq order:    ${s1FreqOrder.join(', ')}`,
     `Block order:   ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
@@ -1661,6 +1749,7 @@ function buildCSV() {
     `# Hearing: ${participant.hearingStatus} — ${participant.hearingNotes}`,
     `# Device: ${participant.listenDevice}`,
     `# Session start: ${sessionStart}`,
+    `# Comments: ${participant.comments || '—'}`,
     `# Stimulus folder: ${activeFolder} (${activeFolderLabel})`,
     `# Freq order: ${s1FreqOrder.join(', ')}`,
     `# Block order: ${s2Blocks.map(b=>b.freq+' '+b.condition).join(', ')}`,
@@ -1782,7 +1871,8 @@ function clearErr(id){document.getElementById(id).textContent=''}
 function resetToParticipant() {
   participant={}; s1FreqOrder=[]; s1FreqIndex=0; s1Thresholds={}; s1StaircaseLog=[];
   s2Blocks=[]; s2BlockIndex=0; s2Results=[];
-  ['pName','pAge','pHearingNotes'].forEach(id=>document.getElementById(id).value='');
+  ['pName','pAge','pHearingNotes','participantComments'].forEach(id=>document.getElementById(id).value='');
+  participant.comments = '';
   document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
   showScreen('s-participant');
 }
