@@ -286,9 +286,9 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <body>
 <div class="wrap">
   <div class="wordmark">
-    <div class="lab">Paul Morgan · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8c896dc96d5d7cadfd9d6f8dddccd96cbd9d4ded7cadc96d9db96cdd3">[email&#160;protected]</a></div>
+    <div class="lab">Paul Morgan · <span id="researcherEmailDisplay">p.d.morgan@edu.salford.ac.uk</span></div>
     <h1>Temporal <em>Masking</em> Test</h1>
-    <div class="sub">Adaptive threshold · Forward &amp; backward masking</div>
+    <div class="sub">Adaptive threshold · Forward &amp; backward masking<span id="maskerTypeDisplay"></span></div>
     <div class="ver">v<span id="versionDisplay">—</span></div>
   </div>
 
@@ -402,10 +402,10 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <div class="sh"><span class="tag">Step 2 of 4</span><h2>Calibration Instructions</h2></div>
   <ul class="steps">
     <li><span class="num">1</span><span>Make sure you are wearing headphones and are in a quiet environment.</span></li>
-    <li><span class="num">2</span><span>You will hear a series of short stimuli. Each contains a masking sound (click or noise) and a short tone/beep which changes in level as the test progresses.</span></li>
+    <li><span class="num">2</span><span>You will hear a series of short stimuli. Each contains a click and a tone which changes in level as the test progresses.</span></li>
     <li><span class="num">3</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find the threshold at which you can hear the tone.</span></li>
     <li><span class="num">4</span><span>This calibration runs once for each test frequency. You will be told which frequency you are currently being tested on.</span></li>
-    <li><span class="num">5</span><span>Trust your instinct — the system changes the level of the tone up and down in response to your answers to find your threshold.</span></li>
+    <li><span class="num">5</span><span>Trust your instinct — the system changes the level up and down in response to your answers to find your threshold.</span></li>
   </ul>
   <p style="font-size:.72rem;color:var(--text);margin-bottom:1.25rem">
     You can also use the <kbd>Y</kbd>, <kbd>N</kbd> and <kbd>Space</kbd> keys instead of your mouse.
@@ -495,10 +495,10 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
     then listen to the audio introduction before beginning the main test.
   </p>
   <ul class="steps" style="margin-bottom:1.25rem">
-    <li><span class="num">1</span><span>You will now hear a series of stimuli where the tone is played just before or just after the masking noise.</span></li>
+    <li><span class="num">1</span><span>You will now hear a series of stimuli where the tone is played just before or just after the masking click.</span></li>
     <li><span class="num">2</span><span>After each stimulus, click <strong style="color:var(--yes)">Yes</strong> if you heard a tone, or <strong style="color:var(--no)">No</strong> if you did not. The level will adjust automatically to find the threshold at which you can hear the tone.</span></li>
     <li><span class="num">3</span><span>The test is split into four blocks — forward and backward masking for each of the two tone frequencies.</span></li>
-    <li><span class="num">4</span><span>As before, the test will staircase the level of the tone up and down in response to your answers to find your threshold.</span></li>
+    <li><span class="num">4</span><span>As before, the test will staircase up and down in response to your answers to find your threshold.</span></li>
   </ul>
   <div class="preamble-player">
     <div class="preamble-label">Stage 2 introduction</div>
@@ -653,7 +653,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── VERSION — update this when you make any changes ───────────────
-const APP_VERSION = '3.2';
+const APP_VERSION = '3.3';
 // ──────────────────────────────────────────────────────────────────
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -775,6 +775,7 @@ async function loadConfig() {
 
     // resolveActiveFolder must run before showDiagnostics so the folder vars are populated
     resolveActiveFolder();
+    updateWordmark();
     autoGenerateFileList();
     buildExampleButtons();
 
@@ -800,8 +801,9 @@ async function loadConfig() {
 
 function resolveActiveFolder() {
   const sf = CFG.stimulus_folders || {};
-  const f1 = sf.folder_1 || 'stimuli_1';
-  const f2 = sf.folder_2 || 'stimuli_2';
+  // folder_1/folder_2 can be a plain string (legacy) or {path, label} object
+  const f1 = (sf.folder_1?.path || sf.folder_1) || 'stimuli_1';
+  const f2 = (sf.folder_2?.path || sf.folder_2) || 'stimuli_2';
 
   // Store what the config says before any random resolution
   const sel = (sf.select || 'folder_1').toLowerCase();
@@ -1803,6 +1805,21 @@ const san = s=>(s||'p').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_-]/g,'');
 // ══════════════════════════════════════════════════════════════════
 // VISUAL HELPERS
 // ══════════════════════════════════════════════════════════════════
+function updateWordmark() {
+  // Email from config
+  const emailEl = document.getElementById('researcherEmailDisplay');
+  if (emailEl && RESEARCHER_EMAIL) emailEl.textContent = RESEARCHER_EMAIL;
+
+  // Masker type label — derived automatically from the folder name
+  // e.g. 'stimuli-click' -> 'Click masker', 'stimuli-noise' -> 'Noise masker'
+  // strips leading path component, removes 'stimuli' prefix and trailing slash,
+  // capitalises first word and appends 'masker'
+  const folderName = activeFolder.replace(/\/?$/, '').split('/').pop() || '';
+  const stripped   = folderName.replace(/^stimuli[-_]?/i, '').replace(/[-_]/g, ' ').trim();
+  const label      = stripped ? stripped.charAt(0).toUpperCase() + stripped.slice(1) + ' masker' : '';
+  const typeEl     = document.getElementById('maskerTypeDisplay');
+  if (typeEl) typeEl.textContent = label ? ' · ' + label : '';
+}
 const PLAY_PROMPT = 'Click Play or press <kbd>Space</kbd> to listen';
 function setCalEnabled(on){document.getElementById('calBtnYes').disabled=!on;document.getElementById('calBtnNo').disabled=!on}
 function setCalStatus(t){document.getElementById('calStatusTxt').innerHTML=t}
