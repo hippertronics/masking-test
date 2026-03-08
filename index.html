@@ -286,7 +286,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
 <body>
 <div class="wrap">
   <div class="wordmark">
-    <div class="lab">Paul Morgan · <span id="researcherEmailDisplay">p.d.morgan@edu.salford.ac.uk</span></div>
+    <div class="lab">Paul Morgan · <span id="researcherEmailDisplay"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1c6c32783271736e7b7d725c797869326f7d707a736e78327d7f326977">[email&#160;protected]</a></span></div>
     <h1>Temporal <em>Masking</em> Test</h1>
     <div class="sub">Adaptive threshold · Forward &amp; backward masking<span id="maskerTypeDisplay"></span></div>
     <div class="ver">v<span id="versionDisplay">—</span></div>
@@ -330,7 +330,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   <div class="sh"><span class="tag">Step 1 of 4</span><h2>About You</h2></div>
   <p style="font-size:.75rem;color:var(--text);margin-bottom:1.5rem;line-height:1.7">Please answer a few short questions before we begin. All information is kept strictly confidential.</p>
   <div class="grid2">
-    <div class="field"><label class="lbl">Name <span class="req">*</span></label><input type="text" id="pName" placeholder="Your first name" autocomplete="given-name"></div>
+    <div class="field"><label class="lbl">Name <span class="req">*</span></label><input type="text" id="pName" placeholder="Your name" autocomplete="given-name"></div>
     <div class="field"><label class="lbl">Age <span class="req">*</span></label><input type="number" id="pAge" placeholder="e.g. 24" min="10" max="110"></div>
   </div>
   <div class="field"><label class="lbl">Gender</label>
@@ -651,7 +651,7 @@ kbd{background:var(--surf2);border:1px solid var(--border);border-radius:3px;pad
   </div><!-- /card -->
 </div><!-- /wrap -->
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── VERSION — update this when you make any changes ───────────────
 const APP_VERSION = '3.3';
 // ──────────────────────────────────────────────────────────────────
@@ -1903,11 +1903,4 @@ document.addEventListener('keydown',e=>{
     if(e.code==='KeyN'&&!document.getElementById('calBtnNo').disabled)  calResponse(false);
   }
   if (active==='s-trial') {
-    if(e.code==='Space'){e.preventDefault();playTrialStimulus()}
-    if(e.code==='KeyY'&&!document.getElementById('trialBtnYes').disabled) trialResponse(true);
-    if(e.code==='KeyN'&&!document.getElementById('trialBtnNo').disabled)  trialResponse(false);
-  }
-});
-</script>
-</body>
-</html>
+    if(e.code==='Space'){e.preventDefault();playTr
