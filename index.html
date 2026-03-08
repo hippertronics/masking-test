@@ -749,6 +749,7 @@ async function loadConfig() {
     // ── Resolve stimulus folder ────────────────────────────────────
     // Priority: URL param ?folder=1 or ?folder=2  >  config select  >  default
     resolveActiveFolder();
+    updateWordmark();
 
     // Auto-generate file list from config
     autoGenerateFileList();
