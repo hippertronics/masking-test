@@ -39,7 +39,7 @@
 
   "stimuli": {
     "frequencies":      ["1kHz", "2kHz"],
-    "delays_ms":        [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "delays_ms":        [0, 2 ,4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 45, 50],
     "conditions":       ["forward", "backward"],
     "level_step":       5,
     "min_level":        0,
